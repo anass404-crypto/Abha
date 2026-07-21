@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireStudent } from "@/lib/auth";
+import { isPast } from "@/lib/utils";
 import { RoundFlow } from "@/components/student/round-flow";
 
 export default async function RoundPage({ params }: { params: Promise<{ stage: string }> }) {
@@ -15,7 +16,7 @@ export default async function RoundPage({ params }: { params: Promise<{ stage: s
     .limit(1)
     .maybeSingle();
 
-  if (!round || new Date(round.closes_at).getTime() < Date.now()) {
+  if (!round || isPast(round.closes_at)) {
     redirect(`/${slug}`);
   }
 

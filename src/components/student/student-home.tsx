@@ -6,6 +6,7 @@ import { Card, StatTile } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "@/components/ui/countdown";
 import { createClient } from "@/lib/supabase/client";
+import { isWithinWindow } from "@/lib/utils";
 import type { NotificationRow, Profile, Round, Stage } from "@/lib/supabase/database.types";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -55,11 +56,8 @@ export function StudentHome({
     };
   }, [stage.id, profile.id, router]);
 
-  const now = Date.now();
   const roundIsOpen =
-    currentRound?.status === "open" &&
-    new Date(currentRound.opens_at).getTime() <= now &&
-    now <= new Date(currentRound.closes_at).getTime();
+    currentRound?.status === "open" && isWithinWindow(currentRound.opens_at, currentRound.closes_at);
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-8">

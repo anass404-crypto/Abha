@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# منصة المنافسة الطلابية
 
-## Getting Started
+منصة ويب عربية (RTL، جوال أولًا) لمنافسة طلابية قائمة على التخفي وجمع النقاط ومحاولات
+كشف الهوية. راجع [`ARCHITECTURE.md`](./ARCHITECTURE.md) للتصميم الكامل: الصفحات، رحلات
+المستخدمين، مخطط قاعدة البيانات، وخوارزمية احتساب الجولة والكشف.
 
-First, run the development server:
+المكدس التقني: **Next.js (App Router) + TypeScript + Tailwind** على **Vercel**،
+و**Supabase** لقاعدة البيانات (Postgres + RLS) والمصادقة والتحديثات الفورية.
+
+## 1) الإعداد المحلي
 
 ```bash
+npm install
+cp .env.example .env.local   # ثم املأ القيم كما في القسم التالي
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2) ربط مشروع Supabase حقيقي
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+هذا الكود يفترض وجود مشروع Supabase فعلي — لم يتم إنشاء أو ربط أي مشروع سحابي تلقائيًا من
+هذه الجلسة (تنفيذ ذلك يتطلب بيانات اعتماد حسابك الخاصة في Supabase/Vercel، وهي غير متاحة هنا).
+الخطوات:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. أنشئ مشروعًا على [supabase.com](https://supabase.com).
+2. نفّذ المخطط: افتح **SQL Editor** في لوحة Supabase وشغّل محتوى الملف
+   `supabase/migrations/0001_init.sql` كاملًا (أو استخدم Supabase CLI:
+   `supabase db push` بعد `supabase link`).
+3. من **Project Settings → API** انسخ:
+   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public key` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role key` → `SUPABASE_SERVICE_ROLE_KEY` (سرّي، خادم فقط، **لا يُرفع لأي مكان**)
+4. اختر رمزًا سريًا عشوائيًا لمرة واحدة وضعه في `SYSTEM_ADMIN_SETUP_CODE`.
+5. تأكد أن **Realtime** مفعّل على المشروع (مفعّل افتراضيًا)؛ الجداول المطلوبة تُضاف تلقائيًا
+   إلى `supabase_realtime` publication ضمن ملف الهجرة نفسه.
 
-## Learn More
+## 3) إنشاء أول مسؤول نظام ثم المراحل
 
-To learn more about Next.js, take a look at the following resources:
+1. شغّل المشروع (محليًا أو على Vercel) وافتح `/admin/system/setup`.
+2. أدخل بريدًا إلكترونيًا وكلمة مرور ورمز `SYSTEM_ADMIN_SETUP_CODE` — يُنشأ حساب مسؤول
+   النظام لمرة واحدة فقط (المسار يرفض التنفيذ إذا وُجد مسؤول نظام مسبقًا).
+3. سجّل الدخول من `/admin/system/login`، أنشئ مرحلة (منافسة) جديدة بمعرّف رابط (slug)
+   واسم، ثم أضف حساب مشرف لهذه المرحلة (بريد وكلمة مرور).
+4. شارك رابط `/{slug}/register` مع الطلاب، وسجّل مشرف المرحلة دخوله من `/{slug}/login`
+   للوصول إلى `/{slug}/admin`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+بعد التهيئة، ينصح بتدوير أو حذف `SYSTEM_ADMIN_SETUP_CODE` من بيئة الإنتاج.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 4) الربط بـ GitHub / Vercel والتحديثات اللاحقة
 
-## Deploy on Vercel
+- **GitHub**: هذا المستودع هو مصدر الحقيقة لكل الكود؛ كل تعديل لاحق (بما فيه عبر Claude)
+  يُنفَّذ كتغييرات على الكود هنا ويُرفع كـ commits/PRs عادية.
+- **Vercel**: اربط هذا المستودع بمشروع Vercel (Import Project)، وأضف متغيرات البيئة نفسها
+  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+  `SYSTEM_ADMIN_SETUP_CODE`) في إعدادات المشروع على Vercel. من هذه اللحظة، كل push لفرع غير
+  رئيسي ينشئ **Preview Deployment** تلقائيًا (رابط معاينة)، وكل دمج/push إلى الفرع الرئيسي
+  ينشر على الموقع الفعلي — وهو بالضبط تدفق "تعديل → معاينة → نشر بعد الموافقة" المطلوب.
+- **Supabase Migrations**: أي تعديل مستقبلي على قاعدة البيانات يجب أن يكون ملف هجرة جديدًا
+  داخل `supabase/migrations/`، يُنفَّذ يدويًا (أو عبر `supabase db push`) على مشروعك — لا
+  ينفَّذ تلقائيًا عند push إلى GitHub في هذه النسخة (يمكن إضافة ذلك لاحقًا عبر GitHub Action
+  إذا رغبت، بعد ربط رمز وصول Supabase كسرّ في مستودع GitHub).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**لا تُحفظ أي كلمة مرور أو مفتاح سرّي أو بيانات طالب داخل GitHub** — كل ذلك في Supabase
+فقط (قاعدة بيانات محمية بـ RLS) أو كمتغيرات بيئة سرّية على Vercel، ولا يظهر شيء منها في
+كود المستودع.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 5) بنية المشروع
+
+```
+src/app/[stage]/...        صفحات الطالب (تسجيل، دخول، الرئيسية، الجولة، الكشف، الترتيب، السجل)
+src/app/[stage]/admin/...  لوحة تحكم مشرف المرحلة
+src/app/[stage]/display    شاشة العرض الجماعية
+src/app/admin/system/...   لوحة مسؤول النظام (متعدد المراحل)
+src/app/api/...            مسارات خادم للعمليات التي تحتاج امتيازات (تسجيل، اعتماد مشرفين...)
+src/lib/supabase/          عملاء Supabase (متصفح/خادم/service-role) + الأنواع
+supabase/migrations/       مخطط قاعدة البيانات الكامل + سياسات RLS + دوال الاحتساب
+ARCHITECTURE.md            وثيقة التصميم الكاملة
+```
+
+## 6) ما هو منفَّذ فعليًا مقابل خارطة الطريق
+
+راجع القسم الأخير من `ARCHITECTURE.md`. باختصار: التسجيل/الاعتماد/الدخول، دورة اللعب
+الكاملة (إجابة + كشف + احتساب + نشر)، لوحة المتنافسين وشاشة العرض بالتحديث الفوري، لوحة
+تحكم المشرف الكاملة، تعدد المراحل والصلاحيات — كل ذلك يعمل على قاعدة بيانات حقيقية بصلاحيات
+RLS فعلية، وليس واجهات وهمية.
+
+فتح/إغلاق الجولات حاليًا **يدوي** من لوحة المشرف (أو حسب الوقت المضبوط، لكن الانتقال الفعلي
+للحالة يحتاج ضغط الزر أو طلب API). لأتمتة ذلك بالكامل حسب `opens_at/closes_at` بدون تدخل
+يدوي، يلزم جدولة دورية (Supabase Cron Job أو Vercel Cron) تستدعي تحديثًا بسيطًا لحالة
+الجولات — نقطة تمديد موثّقة وسهلة الإضافة لاحقًا. المؤثرات الصوتية الفعلية، الاحتساب
+التراكمي التلقائي لمؤشر الخطر/الأوسمة/سلسلة الإجابات كحسابات مستقلة عن التخزين المباشر
+لم تُبنَ بعد وتُترك كخطوة تالية بحسب الأولوية.

@@ -5,6 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function isPast(iso: string): boolean {
+  return new Date(iso).getTime() < Date.now();
+}
+
+export function isWithinWindow(startIso: string, endIso: string): boolean {
+  const now = Date.now();
+  return new Date(startIso).getTime() <= now && now <= new Date(endIso).getTime();
+}
+
 export function formatCountdown(targetIso: string, nowMs = Date.now()) {
   const diffMs = new Date(targetIso).getTime() - nowMs;
   if (diffMs <= 0) return "00:00:00";

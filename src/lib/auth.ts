@@ -58,6 +58,25 @@ export async function requireStageMember(stageSlug: string): Promise<{
   return { supabase, stage, profile: profile as Profile };
 }
 
+export async function requireSystemAdmin(): Promise<{
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  profile: Profile;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/admin/system/login");
+
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  if (!profile || profile.role !== "system_admin") {
+    await supabase.auth.signOut();
+    redirect("/admin/system/login");
+  }
+
+  return { supabase, profile: profile as Profile };
+}
+
 export async function requireStageAdmin(stageSlug: string): Promise<{
   supabase: Awaited<ReturnType<typeof createClient>>;
   stage: Stage;

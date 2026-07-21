@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "@/components/ui/countdown";
 import { createClient } from "@/lib/supabase/client";
+import { isPast } from "@/lib/utils";
 import type { PlayerCard, Round, Stage } from "@/lib/supabase/database.types";
 
 type Step = "answer" | "reveal" | "review" | "done";
@@ -73,7 +74,7 @@ export function RoundFlow({
     setStep("done");
   }
 
-  const closesAtPast = new Date(round.closes_at).getTime() < Date.now();
+  const closesAtPast = isPast(round.closes_at);
 
   if (step === "done") {
     return (
