@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --stage-primary: #7c3aed;
+  --stage-secondary: #0ea5a4;
+  --stage-bg: #0b0b16;
+  --stage-fg: #f4f4f8;
+  --stage-card: #14142688;
+  --stage-border: #ffffff1a;
+  --font-sans: var(--font-tajawal);
+}
+
+@theme inline {
+  --color-stage-primary: var(--stage-primary);
+  --color-stage-secondary: var(--stage-secondary);
+  --color-stage-bg: var(--stage-bg);
+  --color-stage-fg: var(--stage-fg);
+  --font-sans: var(--font-tajawal);
+}
+
+body {
+  font-family: var(--font-tajawal), Arial, Helvetica, sans-serif;
+  background-image:
+    radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--stage-primary) 22%, transparent), transparent 45%),
+    radial-gradient(circle at 85% 30%, color-mix(in srgb, var(--stage-secondary) 18%, transparent), transparent 40%);
+  background-attachment: fixed;
+}
+
+.glass-card {
+  background: var(--stage-card);
+  border: 1px solid var(--stage-border);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+}
+
+.glow-primary {
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--stage-primary) 70%, transparent);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--stage-primary), var(--stage-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.card-flip-scene { perspective: 1200px; }
+.card-flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+.card-flipped .card-flip-inner { transform: rotateY(180deg); }
+.card-flip-face {
+  backface-visibility: hidden;
+  position: absolute;
+  inset: 0;
+}
+.card-flip-back { transform: rotateY(180deg); }
