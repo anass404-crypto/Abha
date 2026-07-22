@@ -379,6 +379,7 @@ export function RoundControl({
               <th className="p-2 text-right">إجابة الكاشف صحيحة؟</th>
               <th className="p-2 text-right">صحة التخمين</th>
               <th className="p-2 text-right">الحالة</th>
+              <th className="p-2 text-right">وقت التسليم</th>
             </tr>
           </thead>
           <tbody>
@@ -391,6 +392,7 @@ export function RoundControl({
                 <td className="p-2">{a.revealer_answer_correct === null ? "—" : a.revealer_answer_correct ? "نعم" : "لا"}</td>
                 <td className="p-2">{a.is_correct === null ? "—" : a.is_correct ? "صحيح" : "خطأ"}</td>
                 <td className="p-2 text-xs">{REVEAL_STATUS_LABEL[a.status]}</td>
+                <td className="p-2 text-xs">{new Date(a.submitted_at).toLocaleString("ar")}</td>
               </tr>
             ))}
           </tbody>

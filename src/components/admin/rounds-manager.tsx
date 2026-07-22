@@ -2,12 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import type { Round, Stage } from "@/lib/supabase/database.types";
+
+const CORRECT_LETTER_MAP: Record<string, string> = {
+  أ: "a",
+  ب: "b",
+  ج: "c",
+  د: "d",
+  a: "a",
+  b: "b",
+  c: "c",
+  d: "d",
+};
+
+function parseYesNo(value: unknown, fallback: boolean): boolean {
+  const s = String(value ?? "").trim().toLowerCase();
+  if (!s) return fallback;
+  return s === "نعم" || s === "yes" || s === "true" || s === "1";
+}
+
+function parseImportDate(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (value instanceof Date) return value.toISOString();
+  const parsed = new Date(String(value).trim().replace(" ", "T"));
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "مسودة",
@@ -22,6 +47,7 @@ const STATUS_LABEL: Record<string, string> = {
 export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialRounds: Round[] }) {
   const [rounds, setRounds] = useState(initialRounds);
   const [showForm, setShowForm] = useState(false);
+  const [importing, setImporting] = useState(false);
   const nextNumber = (rounds[0]?.round_number ?? 0) + 1;
 
   const [form, setForm] = useState({
@@ -83,12 +109,130 @@ export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialR
     toast.success("تم إنشاء الجولة");
   }
 
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const sheetRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+
+      const errors: string[] = [];
+      const inserts: Partial<Round>[] = [];
+
+      sheetRows.forEach((row, i) => {
+        const line = i + 2; // header occupies row 1
+        const roundNumber = Number(row["رقم الجولة"]);
+        const title = String(row["عنوان الجولة"] ?? "").trim();
+        const question = String(row["السؤال"] ?? "").trim();
+        const optionA = String(row["الخيار أ"] ?? "").trim();
+        const optionB = String(row["الخيار ب"] ?? "").trim();
+        const optionC = String(row["الخيار ج"] ?? "").trim();
+        const optionD = String(row["الخيار د"] ?? "").trim();
+        const correctRaw = String(row["الإجابة الصحيحة"] ?? "").trim();
+
+        if (!roundNumber || !title || !question || !optionA || !optionB) {
+          if (!roundNumber && !title && !question && !optionA && !optionB) return; // fully blank row, skip silently
+          errors.push(`صف ${line}: رقم الجولة والعنوان والسؤال والخيارين أ/ب كلها مطلوبة`);
+          return;
+        }
+
+        const options: Record<string, string> = { a: optionA, b: optionB };
+        if (optionC) options.c = optionC;
+        if (optionD) options.d = optionD;
+
+        const correct = CORRECT_LETTER_MAP[correctRaw] ?? CORRECT_LETTER_MAP[correctRaw.toLowerCase()];
+        if (!correct || !options[correct]) {
+          errors.push(`صف ${line}: الإجابة الصحيحة "${correctRaw}" غير صالحة أو لا تطابق خيارًا معبّأً`);
+          return;
+        }
+
+        const scheduled = parseYesNo(row["جدول زمني؟"], false);
+        let opensAt: string | null = null;
+        let closesAt: string | null = null;
+        if (scheduled) {
+          opensAt = parseImportDate(row["وقت الفتح"]);
+          closesAt = parseImportDate(row["وقت الإغلاق"]);
+          if (!opensAt || !closesAt) {
+            errors.push(`صف ${line}: حدد وقت الفتح والإغلاق بصيغة صحيحة لأن "جدول زمني؟" = نعم`);
+            return;
+          }
+        }
+
+        inserts.push({
+          stage_id: stage.id,
+          round_number: roundNumber,
+          title,
+          question,
+          options,
+          correct_option: correct,
+          points: row["النقاط"] !== "" ? Number(row["النقاط"]) : 10,
+          reveal_attempts_allowed:
+            row["عدد محاولات الكشف"] !== "" ? Number(row["عدد محاولات الكشف"]) : stage.default_reveal_attempts,
+          reveal_enabled: parseYesNo(row["تفعيل الكشف"], true),
+          opens_at: opensAt,
+          closes_at: closesAt,
+          status: scheduled ? "scheduled" : "draft",
+        } as Partial<Round>);
+      });
+
+      if (errors.length > 0) {
+        toast.error(`تعذر الاستيراد (${errors.length} خطأ): ${errors.slice(0, 4).join(" | ")}`);
+        return;
+      }
+      if (inserts.length === 0) {
+        toast.error("لم يتم العثور على أي صفوف صالحة في الملف");
+        return;
+      }
+
+      const supabase = createClient();
+      const { data, error } = await supabase.from("rounds").insert(inserts).select();
+      if (error || !data) {
+        toast.error(
+          error?.message.includes("duplicate") || error?.message.includes("unique")
+            ? "تعذر الاستيراد — رقم جولة مكرر (موجود مسبقًا أو مكرر داخل الملف)"
+            : "تعذر استيراد الجولات، تحقق من البيانات"
+        );
+        return;
+      }
+
+      setRounds((prev) => [...data, ...prev].sort((a, b) => b.round_number - a.round_number));
+      toast.success(`تم استيراد ${data.length} جولة بنجاح`);
+    } catch {
+      toast.error("تعذر قراءة الملف — تأكد أنه بصيغة Excel (.xlsx) صحيحة");
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-black">الأسئلة والجولات</h1>
         <Button onClick={() => setShowForm((v) => !v)}>{showForm ? "إلغاء" : "+ جولة جديدة"}</Button>
       </div>
+
+      <Card className="flex flex-wrap items-center gap-3">
+        <div className="flex-1">
+          <p className="text-sm font-bold">استيراد الجولات من ملف إكسل</p>
+          <p className="text-xs text-[var(--stage-fg)]/50">حمّل القالب، عبّه بجولاتك، ثم ارفعه هنا لإضافتها دفعة واحدة.</p>
+        </div>
+        <a
+          href="/templates/rounds-import-template.xlsx"
+          download
+          className="rounded-lg border border-[var(--stage-border)] px-3 py-2 text-sm font-bold hover:bg-white/5"
+        >
+          تنزيل القالب
+        </a>
+        <label className="cursor-pointer rounded-lg bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15">
+          {importing ? "جارٍ الاستيراد..." : "رفع ملف"}
+          <input type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} disabled={importing} />
+        </label>
+      </Card>
 
       {showForm && (
         <Card>

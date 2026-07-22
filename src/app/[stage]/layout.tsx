@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getStageBySlug } from "@/lib/stage";
 import { stageCssVars } from "@/lib/theme";
 import { StageProvider } from "@/lib/stage-context";
+import { StageBottomNav } from "@/components/nav/stage-bottom-nav";
 
 export default async function StageLayout({
   children,
@@ -16,7 +17,10 @@ export default async function StageLayout({
 
   return (
     <div style={stageCssVars(stage.colors) as React.CSSProperties} className="flex min-h-screen flex-col">
-      <StageProvider stage={stage}>{children}</StageProvider>
+      <StageProvider stage={stage}>
+        {children}
+        <StageBottomNav slug={stage.slug} />
+      </StageProvider>
     </div>
   );
 }

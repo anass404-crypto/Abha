@@ -7,9 +7,8 @@ import { useStage } from "@/lib/stage-context";
 import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 import { registerSchema } from "@/lib/validation/schemas";
-
-const EMOJI_CHOICES = ["🥷", "🕵️", "🦊", "🐺", "🦉", "🐍", "🦅", "🐆", "🎭", "👤", "🦇", "🐉"];
 
 export default function RegisterPage() {
   const stage = useStage();
@@ -114,22 +113,7 @@ export default function RegisterPage() {
           </Field>
 
           <Field label="أيقونة بطاقتك">
-            <div className="flex flex-wrap gap-2">
-              {EMOJI_CHOICES.map((emoji) => (
-                <button
-                  type="button"
-                  key={emoji}
-                  onClick={() => setValues((v) => ({ ...v, emoji }))}
-                  className={`flex h-11 w-11 items-center justify-center rounded-lg border text-xl transition-all ${
-                    values.emoji === emoji
-                      ? "border-[var(--stage-primary)] bg-[var(--stage-primary)]/20 scale-110"
-                      : "border-[var(--stage-border)] hover:bg-white/5"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
+            <EmojiPicker value={values.emoji} onChange={(emoji) => setValues((v) => ({ ...v, emoji }))} />
           </Field>
 
           {stage.extra_field_defs?.map((def) => (
