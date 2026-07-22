@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Field, Input } from "@/components/ui/input";
 import type { Round, Stage, Submission, RevealAttempt } from "@/lib/supabase/database.types";
 
 type SubmissionRow = Submission & { student_display_name: string; student_real_name: string };
@@ -26,6 +27,23 @@ const REVEAL_STATUS_LABEL: Record<string, string> = {
   cancelled_admin: "ملغاة إداريًا",
 };
 
+function toEditForm(round: Round) {
+  return {
+    title: round.title,
+    question: round.question,
+    optionA: round.options.a ?? "",
+    optionB: round.options.b ?? "",
+    optionC: round.options.c ?? "",
+    optionD: round.options.d ?? "",
+    correct_option: round.correct_option,
+    points: round.points,
+    reveal_attempts_allowed: round.reveal_attempts_allowed,
+    reveal_enabled: round.reveal_enabled,
+    opens_at: round.opens_at.slice(0, 16),
+    closes_at: round.closes_at.slice(0, 16),
+  };
+}
+
 export function RoundControl({
   stage,
   round: initialRound,
@@ -40,6 +58,8 @@ export function RoundControl({
   const router = useRouter();
   const [round, setRound] = useState(initialRound);
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState(() => toEditForm(initialRound));
   const supabase = createClient();
 
   async function updateRound(changes: Partial<Round>) {
@@ -82,6 +102,28 @@ export function RoundControl({
       closesAt = new Date(input).toISOString();
     }
     await updateRound({ status: "open", closes_at: closesAt });
+  }
+
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    const options: Record<string, string> = {};
+    if (editForm.optionA) options.a = editForm.optionA;
+    if (editForm.optionB) options.b = editForm.optionB;
+    if (editForm.optionC) options.c = editForm.optionC;
+    if (editForm.optionD) options.d = editForm.optionD;
+
+    await updateRound({
+      title: editForm.title,
+      question: editForm.question,
+      options,
+      correct_option: editForm.correct_option,
+      points: editForm.points,
+      reveal_attempts_allowed: editForm.reveal_attempts_allowed,
+      reveal_enabled: editForm.reveal_enabled,
+      opens_at: new Date(editForm.opens_at).toISOString(),
+      closes_at: new Date(editForm.closes_at).toISOString(),
+    });
+    setEditing(false);
   }
 
   async function sendNotification() {
@@ -159,6 +201,15 @@ export function RoundControl({
             </Button>
           </>
         )}
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setEditForm(toEditForm(round));
+            setEditing((v) => !v);
+          }}
+        >
+          {editing ? "إلغاء التعديل" : "تعديل إعدادات الجولة"}
+        </Button>
         <Button variant="ghost" onClick={sendNotification}>
           إرسال إشعار
         </Button>
@@ -166,6 +217,90 @@ export function RoundControl({
           تصدير النتائج CSV
         </Button>
       </Card>
+
+      {editing && (
+        <Card>
+          <form onSubmit={saveEdit} className="grid gap-4 sm:grid-cols-2">
+            <Field label="عنوان الجولة">
+              <Input value={editForm.title} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))} required />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="السؤال">
+                <Input value={editForm.question} onChange={(e) => setEditForm((f) => ({ ...f, question: e.target.value }))} required />
+              </Field>
+            </div>
+            <Field label="الخيار أ">
+              <Input value={editForm.optionA} onChange={(e) => setEditForm((f) => ({ ...f, optionA: e.target.value }))} required />
+            </Field>
+            <Field label="الخيار ب">
+              <Input value={editForm.optionB} onChange={(e) => setEditForm((f) => ({ ...f, optionB: e.target.value }))} required />
+            </Field>
+            <Field label="الخيار ج (اختياري)">
+              <Input value={editForm.optionC} onChange={(e) => setEditForm((f) => ({ ...f, optionC: e.target.value }))} />
+            </Field>
+            <Field label="الخيار د (اختياري)">
+              <Input value={editForm.optionD} onChange={(e) => setEditForm((f) => ({ ...f, optionD: e.target.value }))} />
+            </Field>
+            <Field label="الإجابة الصحيحة">
+              <select
+                className="w-full rounded-lg border border-[var(--stage-border)] bg-black/20 p-2.5 text-sm"
+                value={editForm.correct_option}
+                onChange={(e) => setEditForm((f) => ({ ...f, correct_option: e.target.value }))}
+              >
+                <option value="a">أ</option>
+                <option value="b">ب</option>
+                {editForm.optionC && <option value="c">ج</option>}
+                {editForm.optionD && <option value="d">د</option>}
+              </select>
+            </Field>
+            <Field label="نقاط الإجابة الصحيحة">
+              <Input
+                type="number"
+                value={editForm.points}
+                onChange={(e) => setEditForm((f) => ({ ...f, points: Number(e.target.value) }))}
+              />
+            </Field>
+            <Field label="عدد محاولات الكشف">
+              <Input
+                type="number"
+                value={editForm.reveal_attempts_allowed}
+                onChange={(e) => setEditForm((f) => ({ ...f, reveal_attempts_allowed: Number(e.target.value) }))}
+              />
+            </Field>
+            <Field label="تفعيل الكشف في هذه الجولة">
+              <select
+                className="w-full rounded-lg border border-[var(--stage-border)] bg-black/20 p-2.5 text-sm"
+                value={editForm.reveal_enabled ? "1" : "0"}
+                onChange={(e) => setEditForm((f) => ({ ...f, reveal_enabled: e.target.value === "1" }))}
+              >
+                <option value="1">مفعّل</option>
+                <option value="0">معطّل</option>
+              </select>
+            </Field>
+            <Field label="وقت الفتح">
+              <Input
+                type="datetime-local"
+                value={editForm.opens_at}
+                onChange={(e) => setEditForm((f) => ({ ...f, opens_at: e.target.value }))}
+                required
+              />
+            </Field>
+            <Field label="وقت الإغلاق">
+              <Input
+                type="datetime-local"
+                value={editForm.closes_at}
+                onChange={(e) => setEditForm((f) => ({ ...f, closes_at: e.target.value }))}
+                required
+              />
+            </Field>
+            <div className="sm:col-span-2">
+              <Button type="submit" disabled={busy} className="w-full">
+                حفظ التعديلات
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
 
       <Card className="overflow-x-auto">
         <h2 className="mb-3 text-sm font-bold text-[var(--stage-fg)]/70">قائمة الإجابات ({submissionRows.length})</h2>
