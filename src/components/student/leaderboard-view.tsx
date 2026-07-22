@@ -3,23 +3,16 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PlayerGrid, usePlayerCards } from "@/components/student/player-grid";
-import { RoundResultsButton } from "@/components/student/round-results-button";
-import type { PlayerCard, Profile, RevealAttempt, Round, Stage, Submission } from "@/lib/supabase/database.types";
+import type { PlayerCard, Profile, Stage } from "@/lib/supabase/database.types";
 
 export function LeaderboardView({
   stage,
   profile,
   initialCards,
-  latestPublishedRound,
-  mySubmission,
-  myRevealAttempts,
 }: {
   stage: Stage;
   profile: Profile;
   initialCards: PlayerCard[];
-  latestPublishedRound: Round | null;
-  mySubmission: Submission | null;
-  myRevealAttempts: RevealAttempt[];
 }) {
   const router = useRouter();
   const cards = usePlayerCards(stage.id, initialCards);
@@ -33,17 +26,6 @@ export function LeaderboardView({
           الرئيسية
         </Button>
       </div>
-
-      {latestPublishedRound && (
-        <div className="mb-6">
-          <RoundResultsButton
-            round={latestPublishedRound}
-            submission={mySubmission}
-            revealAttempts={myRevealAttempts}
-            cards={cards}
-          />
-        </div>
-      )}
 
       {stage.enable_most_wanted && topFive.length > 0 && (
         <div className="mb-6 glass-card p-4">
