@@ -9,6 +9,7 @@ const LINKS = [
   { href: "", label: "نظرة عامة" },
   { href: "/players", label: "اللاعبون" },
   { href: "/rounds", label: "الجولات" },
+  { href: "/leaderboard", label: "شاشة المنافسات" },
   { href: "/settings", label: "الإعدادات" },
 ];
 

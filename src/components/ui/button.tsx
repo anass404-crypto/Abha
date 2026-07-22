@@ -1,5 +1,8 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { ButtonHTMLAttributes, forwardRef } from "react";
+import { motion } from "framer-motion";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -13,15 +16,20 @@ const variants: Record<Variant, string> = {
   danger: "bg-red-600 text-white hover:bg-red-500",
 };
 
-export const Button = forwardRef<
-  HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }
->(({ className, variant = "primary", disabled, ...props }, ref) => (
-  <button
+type ButtonProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration"
+> & { variant?: Variant };
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ className, variant = "primary", disabled, ...props }, ref) => (
+  <motion.button
     ref={ref}
     disabled={disabled}
+    whileTap={disabled ? undefined : { scale: 0.94 }}
+    whileHover={disabled ? undefined : { scale: 1.015 }}
+    transition={{ type: "spring", stiffness: 500, damping: 25 }}
     className={cn(
-      "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all",
+      "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-colors",
       "disabled:opacity-40 disabled:cursor-not-allowed disabled:grayscale",
       variants[variant],
       className

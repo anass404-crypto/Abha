@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Home, Swords, Users, History, LayoutDashboard, ListChecks, Settings2 } from "lucide-react";
+import { Home, Swords, Users, History, LayoutDashboard, ListChecks, Settings2, Trophy } from "lucide-react";
 import { BottomNav, type BottomNavItem } from "@/components/ui/bottom-nav";
 
 export function StageBottomNav({ slug }: { slug: string }) {
@@ -17,6 +17,7 @@ export function StageBottomNav({ slug }: { slug: string }) {
       { href: `${base}/admin`, label: "نظرة عامة", icon: LayoutDashboard, exact: true },
       { href: `${base}/admin/players`, label: "اللاعبون", icon: Users },
       { href: `${base}/admin/rounds`, label: "الجولات", icon: ListChecks },
+      { href: `${base}/admin/leaderboard`, label: "المنافسات", icon: Trophy },
       { href: `${base}/admin/settings`, label: "الإعدادات", icon: Settings2 },
     ];
     return <BottomNav items={items} mobileOnly />;
