@@ -39,8 +39,9 @@ function toEditForm(round: Round) {
     points: round.points,
     reveal_attempts_allowed: round.reveal_attempts_allowed,
     reveal_enabled: round.reveal_enabled,
-    opens_at: round.opens_at.slice(0, 16),
-    closes_at: round.closes_at.slice(0, 16),
+    scheduled: Boolean(round.opens_at && round.closes_at),
+    opens_at: round.opens_at ? round.opens_at.slice(0, 16) : "",
+    closes_at: round.closes_at ? round.closes_at.slice(0, 16) : "",
   };
 }
 
@@ -86,12 +87,18 @@ export function RoundControl({
   }
 
   async function extend() {
+    if (!round.closes_at) return; // manual round, no schedule to extend
     const input = prompt("أدخل وقت الإغلاق الجديد (YYYY-MM-DDTHH:mm):", round.closes_at.slice(0, 16));
     if (!input) return;
     await updateRound({ closes_at: new Date(input).toISOString() });
   }
 
   async function reopen() {
+    if (!round.closes_at) {
+      // manual round with no schedule — status alone gates submissions
+      await updateRound({ status: "open" });
+      return;
+    }
     let closesAt = round.closes_at;
     if (new Date(closesAt).getTime() <= Date.now()) {
       const input = prompt(
@@ -112,6 +119,11 @@ export function RoundControl({
     if (editForm.optionC) options.c = editForm.optionC;
     if (editForm.optionD) options.d = editForm.optionD;
 
+    if (editForm.scheduled && (!editForm.opens_at || !editForm.closes_at)) {
+      toast.error("حدد وقت الفتح والإغلاق، أو ألغِ تفعيل الجدولة للتحكم اليدوي");
+      return;
+    }
+
     await updateRound({
       title: editForm.title,
       question: editForm.question,
@@ -120,8 +132,8 @@ export function RoundControl({
       points: editForm.points,
       reveal_attempts_allowed: editForm.reveal_attempts_allowed,
       reveal_enabled: editForm.reveal_enabled,
-      opens_at: new Date(editForm.opens_at).toISOString(),
-      closes_at: new Date(editForm.closes_at).toISOString(),
+      opens_at: editForm.scheduled ? new Date(editForm.opens_at).toISOString() : null,
+      closes_at: editForm.scheduled ? new Date(editForm.closes_at).toISOString() : null,
     });
     setEditing(false);
   }
@@ -159,9 +171,16 @@ export function RoundControl({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black">
-          الجولة {round.round_number}: {round.title}
-        </h1>
+        <div>
+          <h1 className="text-xl font-black">
+            الجولة {round.round_number}: {round.title}
+          </h1>
+          <p className="text-xs text-[var(--stage-fg)]/50">
+            {round.opens_at && round.closes_at
+              ? `${new Date(round.opens_at).toLocaleString("ar")} → ${new Date(round.closes_at).toLocaleString("ar")}`
+              : "تحكم يدوي (بدون جدول زمني)"}
+          </p>
+        </div>
         <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold">{round.status}</span>
       </div>
 
@@ -176,9 +195,11 @@ export function RoundControl({
             <Button disabled={busy} variant="danger" onClick={() => updateRound({ status: "closed" })}>
               إغلاق الجولة الآن
             </Button>
-            <Button disabled={busy} variant="ghost" onClick={extend}>
-              تمديد الوقت
-            </Button>
+            {round.closes_at && (
+              <Button disabled={busy} variant="ghost" onClick={extend}>
+                تمديد الوقت
+              </Button>
+            )}
           </>
         )}
         {round.status === "closed" && (
@@ -277,22 +298,38 @@ export function RoundControl({
                 <option value="0">معطّل</option>
               </select>
             </Field>
-            <Field label="وقت الفتح">
-              <Input
-                type="datetime-local"
-                value={editForm.opens_at}
-                onChange={(e) => setEditForm((f) => ({ ...f, opens_at: e.target.value }))}
-                required
-              />
-            </Field>
-            <Field label="وقت الإغلاق">
-              <Input
-                type="datetime-local"
-                value={editForm.closes_at}
-                onChange={(e) => setEditForm((f) => ({ ...f, closes_at: e.target.value }))}
-                required
-              />
-            </Field>
+            <div className="sm:col-span-2">
+              <Field label="طريقة التحكم بالوقت">
+                <select
+                  className="w-full rounded-lg border border-[var(--stage-border)] bg-black/20 p-2.5 text-sm"
+                  value={editForm.scheduled ? "1" : "0"}
+                  onChange={(e) => setEditForm((f) => ({ ...f, scheduled: e.target.value === "1" }))}
+                >
+                  <option value="0">يدوي (فتح وإغلاق بالزر فقط، بدون وقت محدد)</option>
+                  <option value="1">جدول زمني (وقت فتح ووقت إغلاق تلقائي)</option>
+                </select>
+              </Field>
+            </div>
+            {editForm.scheduled && (
+              <>
+                <Field label="وقت الفتح">
+                  <Input
+                    type="datetime-local"
+                    value={editForm.opens_at}
+                    onChange={(e) => setEditForm((f) => ({ ...f, opens_at: e.target.value }))}
+                    required
+                  />
+                </Field>
+                <Field label="وقت الإغلاق">
+                  <Input
+                    type="datetime-local"
+                    value={editForm.closes_at}
+                    onChange={(e) => setEditForm((f) => ({ ...f, closes_at: e.target.value }))}
+                    required
+                  />
+                </Field>
+              </>
+            )}
             <div className="sm:col-span-2">
               <Button type="submit" disabled={busy} className="w-full">
                 حفظ التعديلات

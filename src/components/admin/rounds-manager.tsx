@@ -36,6 +36,7 @@ export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialR
     points: 10,
     reveal_attempts_allowed: stage.default_reveal_attempts,
     reveal_enabled: true,
+    scheduled: false,
     opens_at: "",
     closes_at: "",
   });
@@ -48,8 +49,8 @@ export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialR
     if (form.optionC) options.c = form.optionC;
     if (form.optionD) options.d = form.optionD;
 
-    if (!form.opens_at || !form.closes_at) {
-      toast.error("حدد وقت الفتح والإغلاق");
+    if (form.scheduled && (!form.opens_at || !form.closes_at)) {
+      toast.error("حدد وقت الفتح والإغلاق، أو ألغِ تفعيل الجدولة للتحكم اليدوي");
       return;
     }
 
@@ -66,9 +67,9 @@ export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialR
         points: form.points,
         reveal_attempts_allowed: form.reveal_attempts_allowed,
         reveal_enabled: form.reveal_enabled,
-        opens_at: new Date(form.opens_at).toISOString(),
-        closes_at: new Date(form.closes_at).toISOString(),
-        status: "scheduled",
+        opens_at: form.scheduled ? new Date(form.opens_at).toISOString() : null,
+        closes_at: form.scheduled ? new Date(form.closes_at).toISOString() : null,
+        status: form.scheduled ? "scheduled" : "draft",
       })
       .select()
       .single();
@@ -144,12 +145,28 @@ export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialR
                 <option value="0">معطّل</option>
               </select>
             </Field>
-            <Field label="وقت الفتح">
-              <Input type="datetime-local" value={form.opens_at} onChange={(e) => setForm((f) => ({ ...f, opens_at: e.target.value }))} required />
-            </Field>
-            <Field label="وقت الإغلاق">
-              <Input type="datetime-local" value={form.closes_at} onChange={(e) => setForm((f) => ({ ...f, closes_at: e.target.value }))} required />
-            </Field>
+            <div className="sm:col-span-2">
+              <Field label="طريقة التحكم بالوقت">
+                <select
+                  className="w-full rounded-lg border border-[var(--stage-border)] bg-black/20 p-2.5 text-sm"
+                  value={form.scheduled ? "1" : "0"}
+                  onChange={(e) => setForm((f) => ({ ...f, scheduled: e.target.value === "1" }))}
+                >
+                  <option value="0">يدوي (فتح وإغلاق بالزر فقط، بدون وقت محدد)</option>
+                  <option value="1">جدول زمني (وقت فتح ووقت إغلاق تلقائي)</option>
+                </select>
+              </Field>
+            </div>
+            {form.scheduled && (
+              <>
+                <Field label="وقت الفتح">
+                  <Input type="datetime-local" value={form.opens_at} onChange={(e) => setForm((f) => ({ ...f, opens_at: e.target.value }))} required />
+                </Field>
+                <Field label="وقت الإغلاق">
+                  <Input type="datetime-local" value={form.closes_at} onChange={(e) => setForm((f) => ({ ...f, closes_at: e.target.value }))} required />
+                </Field>
+              </>
+            )}
             <div className="sm:col-span-2">
               <Button type="submit" className="w-full">
                 إنشاء الجولة
@@ -168,7 +185,9 @@ export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialR
                   الجولة {r.round_number}: {r.title}
                 </div>
                 <div className="text-xs text-[var(--stage-fg)]/50">
-                  {new Date(r.opens_at).toLocaleString("ar")} → {new Date(r.closes_at).toLocaleString("ar")}
+                  {r.opens_at && r.closes_at
+                    ? `${new Date(r.opens_at).toLocaleString("ar")} → ${new Date(r.closes_at).toLocaleString("ar")}`
+                    : "يدوي (بدون جدول زمني)"}
                 </div>
               </div>
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold">{STATUS_LABEL[r.status]}</span>

@@ -16,7 +16,7 @@ export default async function RoundPage({ params }: { params: Promise<{ stage: s
     .limit(1)
     .maybeSingle();
 
-  if (!round || isPast(round.closes_at)) {
+  if (!round || (round.closes_at && isPast(round.closes_at))) {
     redirect(`/${slug}`);
   }
 

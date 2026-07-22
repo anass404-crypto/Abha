@@ -9,7 +9,8 @@ export function isPast(iso: string): boolean {
   return new Date(iso).getTime() < Date.now();
 }
 
-export function isWithinWindow(startIso: string, endIso: string): boolean {
+export function isWithinWindow(startIso: string | null, endIso: string | null): boolean {
+  if (!startIso || !endIso) return true; // no schedule set — manual status is the only gate
   const now = Date.now();
   return new Date(startIso).getTime() <= now && now <= new Date(endIso).getTime();
 }

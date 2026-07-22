@@ -100,8 +100,8 @@ export type Round = {
   points: number;
   reveal_attempts_allowed: number;
   reveal_enabled: boolean;
-  opens_at: string;
-  closes_at: string;
+  opens_at: string | null;
+  closes_at: string | null;
   publish_mode: PublishMode;
   results_published_at: string | null;
   open_message: string | null;

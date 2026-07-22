@@ -96,7 +96,7 @@ export function StudentHome({
               </span>
             </div>
             <h2 className="mb-1 text-lg font-black">{currentRound.title}</h2>
-            {roundIsOpen && (
+            {roundIsOpen && currentRound.closes_at && (
               <p className="mb-3 text-sm text-[var(--stage-fg)]/70">
                 الوقت المتبقي: <Countdown target={currentRound.closes_at} className="font-mono font-bold" />
               </p>

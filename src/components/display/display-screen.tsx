@@ -82,7 +82,7 @@ export function DisplayScreen({
         <div className="glass-card p-4 text-center">
           <div className="text-xs text-[var(--stage-fg)]/60">الوقت المتبقي</div>
           <div className="text-2xl font-black" dir="ltr">
-            {currentRound?.status === "open" ? <Countdown target={currentRound.closes_at} /> : "—"}
+            {currentRound?.status === "open" && currentRound.closes_at ? <Countdown target={currentRound.closes_at} /> : "—"}
           </div>
         </div>
         <div className="glass-card p-4 text-center">

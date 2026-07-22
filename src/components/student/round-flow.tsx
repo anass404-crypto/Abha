@@ -74,7 +74,7 @@ export function RoundFlow({
     setStep("done");
   }
 
-  const closesAtPast = isPast(round.closes_at);
+  const closesAtPast = round.closes_at ? isPast(round.closes_at) : false;
 
   if (step === "done") {
     return (
@@ -96,7 +96,7 @@ export function RoundFlow({
         <span>
           الجولة {round.round_number}: {round.title}
         </span>
-        {!closesAtPast && (
+        {round.closes_at && !closesAtPast && (
           <span>
             ⏱ <Countdown target={round.closes_at} className="font-mono font-bold" />
           </span>
