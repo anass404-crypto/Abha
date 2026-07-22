@@ -119,10 +119,10 @@ export function RoundsManager({ stage, initialRounds }: { stage: Stage; initialR
                 value={form.correct_option}
                 onChange={(e) => setForm((f) => ({ ...f, correct_option: e.target.value }))}
               >
-                <option value="a">أ</option>
-                <option value="b">ب</option>
-                {form.optionC && <option value="c">ج</option>}
-                {form.optionD && <option value="d">د</option>}
+                <option value="a">أ{form.optionA && ` — ${form.optionA}`}</option>
+                <option value="b">ب{form.optionB && ` — ${form.optionB}`}</option>
+                {form.optionC && <option value="c">ج — {form.optionC}</option>}
+                {form.optionD && <option value="d">د — {form.optionD}</option>}
               </select>
             </Field>
             <Field label="نقاط الإجابة الصحيحة">

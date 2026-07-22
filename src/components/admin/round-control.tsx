@@ -268,10 +268,10 @@ export function RoundControl({
                 value={editForm.correct_option}
                 onChange={(e) => setEditForm((f) => ({ ...f, correct_option: e.target.value }))}
               >
-                <option value="a">أ</option>
-                <option value="b">ب</option>
-                {editForm.optionC && <option value="c">ج</option>}
-                {editForm.optionD && <option value="d">د</option>}
+                <option value="a">أ{editForm.optionA && ` — ${editForm.optionA}`}</option>
+                <option value="b">ب{editForm.optionB && ` — ${editForm.optionB}`}</option>
+                {editForm.optionC && <option value="c">ج — {editForm.optionC}</option>}
+                {editForm.optionD && <option value="d">د — {editForm.optionD}</option>}
               </select>
             </Field>
             <Field label="نقاط الإجابة الصحيحة">
