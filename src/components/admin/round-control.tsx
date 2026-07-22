@@ -71,6 +71,19 @@ export function RoundControl({
     await updateRound({ closes_at: new Date(input).toISOString() });
   }
 
+  async function reopen() {
+    let closesAt = round.closes_at;
+    if (new Date(closesAt).getTime() <= Date.now()) {
+      const input = prompt(
+        "وقت إغلاق الجولة الحالي قد مضى — أدخل وقت إغلاق جديد حتى يقدر الطلاب يجاوبون (YYYY-MM-DDTHH:mm):",
+        new Date(Date.now() + 15 * 60_000).toISOString().slice(0, 16)
+      );
+      if (!input) return;
+      closesAt = new Date(input).toISOString();
+    }
+    await updateRound({ status: "open", closes_at: closesAt });
+  }
+
   async function sendNotification() {
     const title = prompt("عنوان الإشعار:");
     if (!title) return;
@@ -127,9 +140,14 @@ export function RoundControl({
           </>
         )}
         {round.status === "closed" && (
-          <Button disabled={busy} onClick={() => runRpc("calculate_round")}>
-            احتساب نقاط الجولة وتنفيذ محاولات الكشف
-          </Button>
+          <>
+            <Button disabled={busy} onClick={() => runRpc("calculate_round")}>
+              احتساب نقاط الجولة وتنفيذ محاولات الكشف
+            </Button>
+            <Button disabled={busy} variant="ghost" onClick={reopen}>
+              إعادة فتح الجولة للطلاب
+            </Button>
+          </>
         )}
         {round.status === "calculated" && (
           <>
