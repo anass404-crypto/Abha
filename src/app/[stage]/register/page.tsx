@@ -68,8 +68,12 @@ export default function RegisterPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
       <div className="mb-6 text-center">
-        {stage.logo_url && <img src={stage.logo_url} alt={stage.name} className="mx-auto mb-3 h-10" />}
-        <h2 className="text-lg font-bold text-[var(--stage-fg)]/85">{stage.name}</h2>
+        <img
+          src="/logo-masked.svg"
+          alt="الملثم"
+          className="mx-auto mb-2 h-12 w-12 drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]"
+        />
+        <h2 className="text-lg font-black text-amber-400">الملثم</h2>
         <p className="mt-1 text-sm text-[var(--stage-fg)]/60">انضم إلى المنافسة — اختر هويتك المتخفية</p>
       </div>
 
