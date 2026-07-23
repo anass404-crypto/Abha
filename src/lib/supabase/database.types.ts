@@ -227,6 +227,7 @@ export interface Database {
       undo_calculation: { Args: { p_round_id: string }; Returns: void };
       admin_adjust_balance: { Args: { p_student_id: string; p_amount: number; p_reason: string }; Returns: void };
       admin_expose_player: { Args: { p_student_id: string; p_reason: string }; Returns: void };
+      delete_stage_completely: { Args: { p_stage_id: string }; Returns: void };
     };
     Enums: {
       user_role: UserRole;

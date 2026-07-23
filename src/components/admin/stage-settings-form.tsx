@@ -11,7 +11,7 @@ import type { Stage } from "@/lib/supabase/database.types";
 const TOGGLES: { key: keyof Stage; label: string }[] = [
   { key: "registration_open", label: "التسجيل مفتوح" },
   { key: "auto_approve", label: "اعتماد التسجيل تلقائيًا" },
-  { key: "show_leaderboard", label: "إظهار الترتيب" },
+  { key: "show_leaderboard", label: "إظهار لوحة المتنافسين للطلاب" },
   { key: "show_balances", label: "إظهار أرصدة اللاعبين" },
   { key: "enable_risk_indicator", label: "تفعيل مؤشر الخطر" },
   { key: "enable_most_wanted", label: "تفعيل الأكثر طلبًا" },

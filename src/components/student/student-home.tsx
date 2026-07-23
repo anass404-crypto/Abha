@@ -25,6 +25,7 @@ export function StudentHome({
   rank,
   remainingCount,
   notifications,
+  hasSubmitted,
 }: {
   stage: Stage;
   profile: Profile;
@@ -32,6 +33,7 @@ export function StudentHome({
   rank: number | null;
   remainingCount: number;
   notifications: NotificationRow[];
+  hasSubmitted: boolean;
 }) {
   const router = useRouter();
 
@@ -105,7 +107,11 @@ export function StudentHome({
               <span>نقاط الجولة: {currentRound.points}</span>
               <span>محاولات الكشف: {currentRound.reveal_attempts_allowed}</span>
             </div>
-            {roundIsOpen ? (
+            {roundIsOpen && hasSubmitted && !stage.allow_answer_edit ? (
+              <Button className="w-full" variant="ghost" disabled>
+                تم التسليم ✅
+              </Button>
+            ) : roundIsOpen ? (
               <Button className="w-full" onClick={() => router.push(`/${stage.slug}/round`)}>
                 دخول الجولة
               </Button>
@@ -120,10 +126,12 @@ export function StudentHome({
         )}
       </Card>
 
-      <div className="mb-6 grid grid-cols-2 gap-3">
-        <Button variant="secondary" onClick={() => router.push(`/${stage.slug}/leaderboard`)}>
-          لوحة المتنافسين
-        </Button>
+      <div className={`mb-6 grid gap-3 ${stage.show_leaderboard ? "grid-cols-2" : "grid-cols-1"}`}>
+        {stage.show_leaderboard && (
+          <Button variant="secondary" onClick={() => router.push(`/${stage.slug}/leaderboard`)}>
+            لوحة المتنافسين
+          </Button>
+        )}
         <Button variant="ghost" onClick={() => router.push(`/${stage.slug}/history`)}>
           سجل الرصيد
         </Button>

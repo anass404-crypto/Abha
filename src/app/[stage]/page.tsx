@@ -50,6 +50,17 @@ export default async function StageHomePage({ params }: { params: Promise<{ stag
   const rank = rankData ? rankData.findIndex((p) => p.id === profile.id) + 1 : null;
   const remaining = rankData ? rankData.filter((p) => p.status !== "exposed").length : activeCount ?? 0;
 
+  let hasSubmitted = false;
+  if (currentRound) {
+    const { data: submission } = await supabase
+      .from("submissions")
+      .select("id")
+      .eq("round_id", currentRound.id)
+      .eq("student_id", profile.id)
+      .maybeSingle();
+    hasSubmitted = Boolean(submission);
+  }
+
   return (
     <StudentHome
       stage={stage}
@@ -58,6 +69,7 @@ export default async function StageHomePage({ params }: { params: Promise<{ stag
       rank={rank}
       remainingCount={remaining}
       notifications={notifications ?? []}
+      hasSubmitted={hasSubmitted}
     />
   );
 }

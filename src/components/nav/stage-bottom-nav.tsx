@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Home, Swords, Users, History, LayoutDashboard, ListChecks, Settings2 } from "lucide-react";
+import { Home, Users, History, LayoutDashboard, ListChecks, Settings2 } from "lucide-react";
 import { BottomNav, type BottomNavItem } from "@/components/ui/bottom-nav";
 
-export function StageBottomNav({ slug }: { slug: string }) {
+export function StageBottomNav({ slug, showLeaderboard }: { slug: string; showLeaderboard: boolean }) {
   const pathname = usePathname();
   const base = `/${slug}`;
 
@@ -25,8 +25,7 @@ export function StageBottomNav({ slug }: { slug: string }) {
   if (isStudent) {
     const items: BottomNavItem[] = [
       { href: base, label: "الرئيسية", icon: Home, exact: true },
-      { href: `${base}/round`, label: "الجولة", icon: Swords },
-      { href: `${base}/leaderboard`, label: "المتنافسون", icon: Users },
+      ...(showLeaderboard ? [{ href: `${base}/leaderboard`, label: "المتنافسون", icon: Users }] : []),
       { href: `${base}/history`, label: "السجل", icon: History },
     ];
     return <BottomNav items={items} />;

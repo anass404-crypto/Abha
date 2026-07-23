@@ -10,8 +10,9 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "منصة المنافسة",
+  title: "الملثم",
   description: "منصة منافسة طلابية تفاعلية قائمة على التخفي والكشف",
+  icons: { icon: "/logo-masked.svg" },
 };
 
 export default function RootLayout({

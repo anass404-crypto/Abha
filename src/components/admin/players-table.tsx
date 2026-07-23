@@ -71,6 +71,22 @@ export function PlayersTable({ stage, initialPlayers }: { stage: Stage; initialP
     toast.success("تم تعديل الرصيد");
   }
 
+  async function changePassword(id: string) {
+    const password = prompt("كلمة المرور الجديدة (6 أحرف على الأقل):");
+    if (!password) return;
+    const res = await fetch(`/api/admin/${stage.slug}/players/${id}/set-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      toast.error(json.error ?? "تعذر تغيير كلمة المرور");
+      return;
+    }
+    toast.success("تم تغيير كلمة المرور");
+  }
+
   async function exposeAdmin(id: string) {
     if (!confirm("هل تريد كشف هذا اللاعب إداريًا؟")) return;
     const reason = prompt("سبب الكشف الإداري (اختياري):") ?? "كشف إداري";
@@ -169,6 +185,9 @@ export function PlayersTable({ stage, initialPlayers }: { stage: Stage; initialP
                         إعادة تفعيل
                       </Button>
                     )}
+                    <Button variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => changePassword(p.id)}>
+                      تغيير كلمة المرور
+                    </Button>
                   </div>
                 </td>
               </tr>

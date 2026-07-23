@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -214,8 +215,11 @@ export function RoundControl({
         )}
         {round.status === "calculated" && (
           <>
-            <Button disabled={busy} onClick={() => runRpc("publish_round", "نشر النتائج الآن؟ لا يمكن التراجع بعد النشر.")}>
-              نشر النتائج
+            <Link href={`/${stage.slug}/admin/rounds/${round.id}/preview`}>
+              <Button variant="ghost">👁️ معاينة شاشة العرض (لك فقط)</Button>
+            </Link>
+            <Button disabled={busy} onClick={() => runRpc("publish_round", "نشر النتائج للطلاب الآن؟ لا يمكن التراجع بعد النشر.")}>
+              نشر النتائج للطلاب
             </Button>
             <Button disabled={busy} variant="ghost" onClick={() => runRpc("undo_calculation", "التراجع عن الاحتساب؟")}>
               التراجع عن الاحتساب
