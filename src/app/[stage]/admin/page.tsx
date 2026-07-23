@@ -24,7 +24,13 @@ export default async function AdminOverviewPage({ params }: { params: Promise<{ 
       .order("round_number", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    supabase.from("reveal_attempts").select("*").eq("status", "executed").order("processed_at", { ascending: false }).limit(5),
+    supabase
+      .from("reveal_attempts")
+      .select("*, rounds!inner(stage_id)")
+      .eq("rounds.stage_id", stage.id)
+      .eq("status", "executed")
+      .order("processed_at", { ascending: false })
+      .limit(5),
   ]);
 
   const revealNames = new Map<string, string>();
