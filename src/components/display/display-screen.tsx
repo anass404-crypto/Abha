@@ -66,8 +66,11 @@ export function DisplayScreen({
     <div ref={containerRef} className="min-h-screen flex-1 overflow-y-auto px-6 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {stage.logo_url && <img src={stage.logo_url} alt="" className="h-10" />}
-          <h1 className="text-2xl font-black text-gradient">{stage.name}</h1>
+          <img src="/logo-masked.svg" alt="الملثم" className="h-10 w-10 drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]" />
+          <div>
+            <h1 className="text-2xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(255,215,0,0.35)]">الملثم</h1>
+            <p className="text-xs text-[var(--stage-fg)]/50">{stage.name}</p>
+          </div>
         </div>
         <button onClick={toggleFullscreen} className="rounded-lg border border-[var(--stage-border)] p-2">
           {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}

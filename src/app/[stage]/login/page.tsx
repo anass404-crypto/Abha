@@ -68,8 +68,8 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
       <div className="mb-6 text-center">
-        {stage.logo_url && <img src={stage.logo_url} alt={stage.name} className="mx-auto mb-3 h-14" />}
-        <h1 className="text-2xl font-black text-gradient">{stage.name}</h1>
+        {stage.logo_url && <img src={stage.logo_url} alt={stage.name} className="mx-auto mb-3 h-10" />}
+        <h2 className="text-lg font-bold text-[var(--stage-fg)]/85">{stage.name}</h2>
       </div>
 
       <Card>

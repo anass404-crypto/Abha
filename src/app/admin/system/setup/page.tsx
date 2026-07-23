@@ -36,7 +36,7 @@ export default function SystemAdminSetupPage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
       <div className="mb-6 text-center">
         <img src="/logo-masked.svg" alt="الملثم" className="mx-auto mb-2 h-12 w-12" />
-        <h1 className="text-2xl font-black text-gradient">الملثم</h1>
+        <h1 className="text-2xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(255,215,0,0.35)]">الملثم</h1>
         <p className="text-sm text-[var(--stage-fg)]/50">تهيئة مسؤول النظام</p>
       </div>
       <Card>
