@@ -62,8 +62,19 @@ export function DisplayScreen({
     }
   }
 
+  const lightVars = {
+    "--stage-bg": "#f3f4f6",
+    "--stage-fg": "#16161d",
+    "--stage-card": "rgba(255,255,255,0.8)",
+    "--stage-border": "rgba(0,0,0,0.12)",
+  } as React.CSSProperties;
+
   return (
-    <div ref={containerRef} className="min-h-screen flex-1 overflow-y-auto px-6 py-4">
+    <div
+      ref={containerRef}
+      style={lightVars}
+      className="min-h-screen flex-1 overflow-y-auto bg-[var(--stage-bg)] px-6 py-4 text-[var(--stage-fg)]"
+    >
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <img src="/logo-masked.svg" alt="الملثم" className="h-8 w-8 drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]" />
@@ -94,7 +105,7 @@ export function DisplayScreen({
         </div>
         <div className="glass-card p-2 text-center">
           <div className="text-[10px] text-[var(--stage-fg)]/60">مكشوفون</div>
-          <div className="text-lg font-black text-red-400">{exposedCount}</div>
+          <div className="text-lg font-black text-red-600">{exposedCount}</div>
         </div>
       </div>
 
@@ -103,7 +114,7 @@ export function DisplayScreen({
           <h2 className="mb-1.5 text-xs font-bold text-[var(--stage-fg)]/70">🔥 الأكثر طلبًا</h2>
           <div className="flex flex-wrap gap-2">
             {topBalances.map((c, i) => (
-              <span key={c.id} className="rounded-full bg-white/5 px-2.5 py-1 text-xs font-bold">
+              <span key={c.id} className="rounded-full bg-black/5 px-2.5 py-1 text-xs font-bold">
                 #{i + 1} {c.emoji} {c.display_name}
                 {stage.show_balances && ` — ${c.balance}`}
               </span>
@@ -113,14 +124,14 @@ export function DisplayScreen({
       )}
 
       <div className="grid gap-4 2xl:grid-cols-[1fr_280px]">
-        <PlayerGrid cards={cards} showBalances={stage.show_balances} compact />
+        <PlayerGrid cards={cards} showBalances={stage.show_balances} compact light />
 
         <div className="glass-card h-fit p-4">
           <h2 className="mb-3 text-sm font-bold text-[var(--stage-fg)]/70">آخر الأحداث</h2>
           <ul className="space-y-2 text-sm">
             {events.length === 0 && <li className="text-[var(--stage-fg)]/40">لا توجد أحداث بعد</li>}
             {events.map((e) => (
-              <li key={e.id} className="animate-pulse-glow rounded-lg bg-white/5 p-2.5">
+              <li key={e.id} className="animate-pulse-glow rounded-lg bg-black/5 p-2.5">
                 {EVENT_LABEL[e.type]?.(e.payload) ?? e.type}
               </li>
             ))}

@@ -39,11 +39,13 @@ export function PlayerGrid({
   currentUserId,
   showBalances = true,
   compact = false,
+  light = false,
 }: {
   cards: PlayerCard[];
   currentUserId?: string;
   showBalances?: boolean;
   compact?: boolean;
+  light?: boolean;
 }) {
   const topBalance = Math.max(0, ...cards.filter((c) => c.status === "active").map((c) => c.balance));
 
@@ -51,9 +53,7 @@ export function PlayerGrid({
     <div
       className={cn(
         "grid",
-        compact
-          ? "grid-cols-4 gap-1.5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 2xl:grid-cols-14"
-          : "grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+        compact ? "grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2" : "grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
       )}
     >
       {cards.map((card, i) => (
@@ -64,6 +64,7 @@ export function PlayerGrid({
           isLeader={card.status === "active" && topBalance > 0 && card.balance === topBalance}
           showBalance={showBalances}
           compact={compact}
+          light={light}
           index={i}
         />
       ))}
@@ -77,6 +78,7 @@ function PlayerFlipCard({
   isLeader,
   showBalance,
   compact,
+  light,
   index,
 }: {
   card: PlayerCard;
@@ -84,6 +86,7 @@ function PlayerFlipCard({
   isLeader: boolean;
   showBalance: boolean;
   compact: boolean;
+  light: boolean;
   index: number;
 }) {
   const exposed = card.status === "exposed";
@@ -96,10 +99,14 @@ function PlayerFlipCard({
       transition={{ duration: 0.35, delay: Math.min(index * 0.02, 0.4) }}
       className={cn(
         "relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border text-center",
-        compact ? "gap-0.5 p-1.5" : "aspect-[3/4] gap-1.5 p-3",
+        compact ? "gap-1 p-2" : "aspect-[3/4] gap-1.5 p-3",
         exposed
-          ? "border-zinc-600/50 bg-zinc-800/60 grayscale"
-          : "border-emerald-400/40 bg-gradient-to-br from-emerald-500/15 via-transparent to-emerald-400/5",
+          ? light
+            ? "border-zinc-300 bg-zinc-100"
+            : "border-zinc-600/50 bg-zinc-800/60 grayscale"
+          : light
+            ? "border-emerald-500/50 bg-emerald-50"
+            : "border-emerald-400/40 bg-gradient-to-br from-emerald-500/15 via-transparent to-emerald-400/5",
         isSelf && !exposed && "ring-2 ring-[var(--stage-primary)] shadow-[0_0_28px_-6px_var(--stage-primary)]"
       )}
     >
@@ -112,33 +119,59 @@ function PlayerFlipCard({
       )}
 
       {isLeader && (
-        <span className={cn("absolute right-1 top-1 drop-shadow-[0_0_6px_rgba(250,204,21,0.9)]", compact ? "text-xs" : "text-lg")}>
+        <span className={cn("absolute right-1 top-1 drop-shadow-[0_0_6px_rgba(250,204,21,0.9)]", compact ? "text-sm" : "text-lg")}>
           👑
         </span>
       )}
-      {exposed && !compact && (
-        <span className="absolute right-2 top-2 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
+      {exposed && (
+        <span
+          className={cn(
+            "absolute right-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+            light ? "bg-red-100 text-red-700" : "bg-red-500/20 text-red-400"
+          )}
+        >
           مكشوف
         </span>
       )}
 
-      <span className={cn(compact ? "text-lg" : "text-3xl", exposed && "opacity-70")}>{card.emoji}</span>
+      <span className={cn(compact ? "text-2xl" : "text-3xl", exposed && !light && "opacity-70")}>{card.emoji}</span>
 
       {exposed ? (
         <>
-          <span className={cn("truncate text-center font-black text-zinc-300", compact ? "max-w-full text-[10px]" : "text-sm")}>
+          <span
+            className={cn(
+              "break-words text-center font-black leading-tight",
+              light ? "text-zinc-800" : "text-zinc-300",
+              compact ? "text-[11px]" : "text-sm"
+            )}
+          >
             {card.real_name}
           </span>
-          {!compact && <span className="text-[11px] text-zinc-500">{card.display_name}</span>}
+          <span className={cn("truncate text-center", light ? "text-zinc-500" : "text-zinc-500", compact ? "text-[10px]" : "text-[11px]")}>
+            {card.display_name}
+          </span>
         </>
       ) : (
-        <span className={cn("truncate text-center font-bold text-emerald-50", compact ? "max-w-full text-[10px]" : "text-sm")}>
+        <span
+          className={cn(
+            "truncate text-center font-bold",
+            light ? "text-emerald-900" : "text-emerald-50",
+            compact ? "text-xs" : "text-sm"
+          )}
+        >
           {card.display_name}
         </span>
       )}
 
       {showBalance && (
-        <span className={cn("font-mono", compact ? "text-[9px]" : "text-xs", exposed ? "text-zinc-500" : "text-emerald-300")} dir="ltr">
+        <span
+          className={cn(
+            "font-mono",
+            compact ? "text-[10px]" : "text-xs",
+            exposed ? (light ? "text-zinc-500" : "text-zinc-500") : light ? "text-emerald-700" : "text-emerald-300"
+          )}
+          dir="ltr"
+        >
           {card.balance}
         </span>
       )}
