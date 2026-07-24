@@ -13,6 +13,7 @@ import type {
   ActionCardRuleReward,
   ActionCardTemplate,
   CardEffectKey,
+  CardRarity,
   RuleConditionType,
   Stage,
   StageActionCard,
@@ -25,6 +26,13 @@ const EFFECT_LABEL: Record<CardEffectKey, string> = {
   reveal_freeze: "تجميد الكشف",
   temp_exclusion: "الإقصاء المؤقت",
   protected_copy: "النسخة المحمية",
+};
+
+const RARITY_LABEL: Record<CardRarity, string> = {
+  common: "عادية",
+  rare: "نادرة",
+  epic: "ملحمية",
+  legendary: "أسطورية",
 };
 
 const CONDITION_LABEL: Record<RuleConditionType, string> = {
@@ -79,6 +87,7 @@ export function CardsAdminView({
       description: template.description,
       icon: template.icon,
       image_url: template.image_url,
+      rarity: template.rarity,
       price_points: 0,
       total_copies: 10,
       remaining_copies: 10,
@@ -294,7 +303,9 @@ export function CardsAdminView({
                 <tr key={c.id} className="border-b border-[var(--stage-border)]/50">
                   <td className="p-2">
                     {c.icon} {c.name}
-                    <div className="text-[11px] text-[var(--stage-fg)]/50">{EFFECT_LABEL[c.effect_key]}</div>
+                    <div className="text-[11px] text-[var(--stage-fg)]/50">
+                      {EFFECT_LABEL[c.effect_key]} — {RARITY_LABEL[c.rarity]}
+                    </div>
                   </td>
                   <td className="p-2">
                     <Input

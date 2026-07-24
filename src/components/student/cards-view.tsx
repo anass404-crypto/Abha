@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
-import type { CardShopEntry, MyActionCard, PlayerCard } from "@/lib/supabase/database.types";
+import { cn } from "@/lib/utils";
+import type { CardEffectKey, CardRarity, CardShopEntry, MyActionCard, PlayerCard } from "@/lib/supabase/database.types";
 
 const STATUS_LABEL: Record<MyActionCard["status"], string> = {
   available: "متاحة",
@@ -16,13 +16,89 @@ const STATUS_LABEL: Record<MyActionCard["status"], string> = {
   cancelled: "ملغاة",
 };
 
-function ShopTab({
-  balance,
-  entries,
+const RARITY_STYLES: Record<CardRarity, { label: string; border: string; glow: string; headerBg: string; chip: string }> = {
+  common: {
+    label: "عادية",
+    border: "border-slate-400/40",
+    glow: "shadow-[0_0_18px_-8px_rgba(148,163,184,0.5)]",
+    headerBg: "from-slate-500/25 via-slate-400/5 to-transparent",
+    chip: "bg-slate-500/20 text-slate-300",
+  },
+  rare: {
+    label: "نادرة",
+    border: "border-sky-400/50",
+    glow: "shadow-[0_0_20px_-6px_rgba(56,189,248,0.55)]",
+    headerBg: "from-sky-500/25 via-sky-400/5 to-transparent",
+    chip: "bg-sky-500/20 text-sky-300",
+  },
+  epic: {
+    label: "ملحمية",
+    border: "border-purple-400/50",
+    glow: "shadow-[0_0_22px_-6px_rgba(192,132,252,0.6)]",
+    headerBg: "from-purple-500/25 via-purple-400/5 to-transparent",
+    chip: "bg-purple-500/20 text-purple-300",
+  },
+  legendary: {
+    label: "أسطورية",
+    border: "border-amber-400/60",
+    glow: "shadow-[0_0_28px_-4px_rgba(251,191,36,0.65)]",
+    headerBg: "from-amber-500/30 via-amber-400/10 to-transparent",
+    chip: "bg-amber-500/20 text-amber-300",
+  },
+};
+
+const EFFECT_TAG: Record<CardEffectKey, string> = {
+  shadow_shield: "🛡️ دفاع",
+  protected_copy: "💎 حماية شاملة",
+  double_vision: "👁️ كشف إضافي",
+  double_points: "✨ تعزيز نقاط",
+  reveal_freeze: "❄️ تعطيل خصم",
+  temp_exclusion: "⛔ إقصاء خصم",
+};
+
+function PowerCard({
+  icon,
+  name,
+  rarity,
+  effectKey,
+  description,
+  footer,
 }: {
-  balance: number;
-  entries: CardShopEntry[];
+  icon: string | null;
+  name: string;
+  rarity: CardRarity;
+  effectKey: CardEffectKey | null;
+  description: string | null;
+  footer: React.ReactNode;
 }) {
+  const style = RARITY_STYLES[rarity];
+
+  return (
+    <div className={cn("overflow-hidden rounded-2xl border-2 bg-black/20", style.border, style.glow)}>
+      <div className={cn("relative flex flex-col items-center gap-1 bg-gradient-to-b px-4 pb-3 pt-4", style.headerBg)}>
+        <span className={cn("absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold", style.chip)}>
+          {style.label}
+        </span>
+        <span className="text-5xl drop-shadow-[0_0_10px_rgba(255,255,255,0.25)]">{icon ?? "❔"}</span>
+        <span className="text-center text-base font-black">{name}</span>
+        {effectKey && (
+          <span className="rounded-full bg-black/30 px-2.5 py-0.5 text-[11px] font-bold text-[var(--stage-fg)]/80">
+            {EFFECT_TAG[effectKey]}
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-3 p-4">
+        <p className="min-h-[2.5rem] text-xs leading-relaxed text-[var(--stage-fg)]/70">
+          {description ?? "قوة هذه البطاقة غير معروفة بعد — جرّب اكتشافها."}
+        </p>
+        {footer}
+      </div>
+    </div>
+  );
+}
+
+function ShopTab({ balance, entries }: { balance: number; entries: CardShopEntry[] }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -44,28 +120,31 @@ function ShopTab({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {entries.map((card) => (
-        <Card key={card.id} className="p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-2xl">{card.is_undiscovered ? "❔" : card.icon}</span>
-            <div className="min-w-0">
-              <div className="truncate font-bold">{card.name}</div>
-              {card.description && <div className="text-xs text-[var(--stage-fg)]/50">{card.description}</div>}
-            </div>
-          </div>
-          <div className="mb-3 flex items-center justify-between text-xs text-[var(--stage-fg)]/60">
-            <span>السعر: {card.price_points}</span>
-            <span>{card.sold_out ? "نفدت الكمية" : `المتبقي: ${card.remaining_copies}`}</span>
-          </div>
-          <Button
-            className="w-full"
-            disabled={!card.is_purchasable || card.sold_out || balance < card.price_points || busyId === card.id}
-            onClick={() => purchase(card)}
-          >
-            {busyId === card.id ? "جارٍ الشراء..." : "شراء"}
-          </Button>
-        </Card>
+        <PowerCard
+          key={card.id}
+          icon={card.is_undiscovered ? "❔" : card.icon}
+          name={card.name}
+          rarity={card.rarity}
+          effectKey={card.effect_key}
+          description={card.description}
+          footer={
+            <>
+              <div className="flex items-center justify-between text-xs text-[var(--stage-fg)]/60">
+                <span>السعر: {card.price_points}</span>
+                <span>{card.sold_out ? "نفدت الكمية" : `المتبقي: ${card.remaining_copies}`}</span>
+              </div>
+              <Button
+                className="w-full"
+                disabled={!card.is_purchasable || card.sold_out || balance < card.price_points || busyId === card.id}
+                onClick={() => purchase(card)}
+              >
+                {busyId === card.id ? "جارٍ الشراء..." : "شراء"}
+              </Button>
+            </>
+          }
+        />
       ))}
     </div>
   );
@@ -125,41 +204,45 @@ function MyCardsTab({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {myCards.map((card) => {
         const usageId = cancellableUsageByCard[card.id];
         return (
-          <Card key={card.id} className="p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="text-2xl">{card.card_icon}</span>
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-bold">{card.card_name}</div>
-                <div className="text-xs text-[var(--stage-fg)]/50">{STATUS_LABEL[card.status]}</div>
-              </div>
-            </div>
+          <PowerCard
+            key={card.id}
+            icon={card.card_icon}
+            name={card.card_name}
+            rarity={card.rarity}
+            effectKey={card.effect_key}
+            description={card.card_description}
+            footer={
+              <>
+                <div className="text-center text-xs font-bold text-[var(--stage-fg)]/60">{STATUS_LABEL[card.status]}</div>
 
-            {card.status === "available" && (
-              <Button
-                className="w-full"
-                disabled={!openRoundId || busyId === card.id}
-                onClick={() => (card.requires_target ? setPendingCard(card) : activateCard(card, null))}
-              >
-                {!openRoundId ? "لا توجد جولة مفتوحة" : busyId === card.id ? "جارٍ التفعيل..." : "استخدام"}
-              </Button>
-            )}
+                {card.status === "available" && (
+                  <Button
+                    className="w-full"
+                    disabled={!openRoundId || busyId === card.id}
+                    onClick={() => (card.requires_target ? setPendingCard(card) : activateCard(card, null))}
+                  >
+                    {!openRoundId ? "لا توجد جولة مفتوحة" : busyId === card.id ? "جارٍ التفعيل..." : "استخدام"}
+                  </Button>
+                )}
 
-            {card.status === "reserved" && usageId && (
-              <Button variant="ghost" className="w-full" disabled={busyId === usageId} onClick={() => cancel(usageId)}>
-                {busyId === usageId ? "جارٍ الإلغاء..." : "إلغاء الاستخدام"}
-              </Button>
-            )}
-          </Card>
+                {card.status === "reserved" && usageId && (
+                  <Button variant="ghost" className="w-full" disabled={busyId === usageId} onClick={() => cancel(usageId)}>
+                    {busyId === usageId ? "جارٍ الإلغاء..." : "إلغاء الاستخدام"}
+                  </Button>
+                )}
+              </>
+            }
+          />
         );
       })}
 
       {pendingCard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <Card className="w-full max-w-sm">
+          <div className="glass-card w-full max-w-sm p-5">
             <h3 className="mb-3 font-bold">اختر الهدف لبطاقة &quot;{pendingCard.card_name}&quot;</h3>
             <select
               className="mb-3 w-full rounded-lg border border-[var(--stage-border)] bg-black/20 p-2.5 text-sm"
@@ -181,7 +264,7 @@ function MyCardsTab({
                 تأكيد
               </Button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>

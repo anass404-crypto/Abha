@@ -261,12 +261,16 @@ export type RoundParticipationStatus = {
   reveal_frozen: boolean;
 };
 
+export type CardRarity = "common" | "rare" | "epic" | "legendary";
+
 export type CardShopEntry = {
   id: string;
   name: string;
   description: string | null;
   icon: string | null;
   image_url: string | null;
+  rarity: CardRarity;
+  effect_key: CardEffectKey | null;
   price_points: number;
   remaining_copies: number;
   sold_out: boolean;
@@ -281,6 +285,8 @@ export type MyActionCard = {
   id: string;
   card_name: string;
   card_icon: string | null;
+  card_description: string | null;
+  rarity: CardRarity;
   effect_key: CardEffectKey;
   requires_target: boolean;
   status: PlayerCardStatus;
@@ -300,7 +306,7 @@ export type ActionCardTemplate = {
   icon: string | null;
   image_url: string | null;
   default_config: Record<string, unknown>;
-  rarity: "common" | "rare" | "epic" | "legendary";
+  rarity: CardRarity;
   is_globally_active: boolean;
   created_by: string | null;
   created_at: string;
@@ -316,6 +322,7 @@ export type StageActionCard = {
   description: string;
   icon: string | null;
   image_url: string | null;
+  rarity: CardRarity;
   price_points: number;
   total_copies: number;
   remaining_copies: number;
