@@ -52,7 +52,7 @@ export function PlayerGrid({
       className={cn(
         "grid",
         compact
-          ? "grid-cols-4 gap-1.5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10"
+          ? "grid-cols-4 gap-1.5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 2xl:grid-cols-14"
           : "grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
       )}
     >
