@@ -34,7 +34,15 @@ export function usePlayerCards(stageId: string, initial: PlayerCard[]) {
   return cards;
 }
 
-export function PlayerGrid({ cards, currentUserId }: { cards: PlayerCard[]; currentUserId?: string }) {
+export function PlayerGrid({
+  cards,
+  currentUserId,
+  showBalances = true,
+}: {
+  cards: PlayerCard[];
+  currentUserId?: string;
+  showBalances?: boolean;
+}) {
   const topBalance = Math.max(0, ...cards.filter((c) => c.status === "active").map((c) => c.balance));
 
   return (
@@ -45,6 +53,7 @@ export function PlayerGrid({ cards, currentUserId }: { cards: PlayerCard[]; curr
           card={card}
           isSelf={card.id === currentUserId}
           isLeader={card.status === "active" && topBalance > 0 && card.balance === topBalance}
+          showBalance={showBalances}
           index={i}
         />
       ))}
@@ -56,11 +65,13 @@ function PlayerFlipCard({
   card,
   isSelf,
   isLeader,
+  showBalance,
   index,
 }: {
   card: PlayerCard;
   isSelf: boolean;
   isLeader: boolean;
+  showBalance: boolean;
   index: number;
 }) {
   const exposed = card.status === "exposed";
@@ -107,9 +118,11 @@ function PlayerFlipCard({
         <span className="text-center text-sm font-bold text-emerald-50">{card.display_name}</span>
       )}
 
-      <span className={cn("text-xs font-mono", exposed ? "text-zinc-500" : "text-emerald-300")} dir="ltr">
-        {card.balance}
-      </span>
+      {showBalance && (
+        <span className={cn("text-xs font-mono", exposed ? "text-zinc-500" : "text-emerald-300")} dir="ltr">
+          {card.balance}
+        </span>
+      )}
     </motion.div>
   );
 }

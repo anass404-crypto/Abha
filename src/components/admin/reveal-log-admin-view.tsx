@@ -86,7 +86,7 @@ export function RevealLogAdminView({ rows }: { rows: Row[] }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black">سجل الكشوف (تفصيلي)</h1>
+        <h1 className="text-xl font-black">الساحة (تفصيلي)</h1>
         <Button variant="ghost" onClick={exportCsv}>
           تصدير CSV
         </Button>

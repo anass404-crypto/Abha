@@ -33,14 +33,15 @@ export function LeaderboardView({
           <div className="flex flex-wrap gap-3">
             {topFive.map((c, i) => (
               <span key={c.id} className="rounded-full bg-white/5 px-3 py-1 text-sm font-bold">
-                #{i + 1} {c.emoji} {c.display_name} — {c.balance}
+                #{i + 1} {c.emoji} {c.display_name}
+                {stage.show_balances && ` — ${c.balance}`}
               </span>
             ))}
           </div>
         </div>
       )}
 
-      <PlayerGrid cards={cards} currentUserId={profile.id} />
+      <PlayerGrid cards={cards} currentUserId={profile.id} showBalances={stage.show_balances} />
     </main>
   );
 }

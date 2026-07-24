@@ -104,7 +104,8 @@ export function DisplayScreen({
           <div className="flex flex-wrap gap-3">
             {topBalances.map((c, i) => (
               <span key={c.id} className="rounded-full bg-white/5 px-3 py-1.5 text-sm font-bold">
-                #{i + 1} {c.emoji} {c.display_name} — {c.balance}
+                #{i + 1} {c.emoji} {c.display_name}
+                {stage.show_balances && ` — ${c.balance}`}
               </span>
             ))}
           </div>
@@ -112,7 +113,7 @@ export function DisplayScreen({
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <PlayerGrid cards={cards} />
+        <PlayerGrid cards={cards} showBalances={stage.show_balances} />
 
         <div className="glass-card h-fit p-4">
           <h2 className="mb-3 text-sm font-bold text-[var(--stage-fg)]/70">آخر الأحداث</h2>

@@ -164,7 +164,8 @@ export function RoundFlow({
           {activeTarget ? (
             <div className="mb-4 rounded-xl border border-[var(--stage-primary)] p-3">
               <div className="mb-2 font-bold">
-                {activeTarget.emoji} {activeTarget.display_name} — رصيده: {activeTarget.balance}
+                {activeTarget.emoji} {activeTarget.display_name}
+                {stage.show_balances && ` — رصيده: ${activeTarget.balance}`}
               </div>
               <select
                 className="w-full rounded-lg border border-[var(--stage-border)] bg-black/30 p-2.5 text-sm"

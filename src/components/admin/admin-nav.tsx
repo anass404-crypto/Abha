@@ -10,7 +10,7 @@ const LINKS = [
   { href: "/players", label: "اللاعبون" },
   { href: "/rounds", label: "الجولات" },
   { href: "/cards", label: "البطاقات" },
-  { href: "/reveal-log", label: "سجل الكشوف" },
+  { href: "/reveal-log", label: "الساحة" },
   { href: "/settings", label: "الإعدادات" },
 ];
 

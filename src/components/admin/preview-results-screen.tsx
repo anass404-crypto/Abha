@@ -31,7 +31,7 @@ export function PreviewResultsScreen({
         </Link>
       </div>
 
-      <PlayerGrid cards={cards} />
+      <PlayerGrid cards={cards} showBalances={stage.show_balances} />
     </div>
   );
 }

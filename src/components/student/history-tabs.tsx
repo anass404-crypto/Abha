@@ -70,7 +70,7 @@ export function HistoryTabs({
             tab === "reveal" ? "bg-[var(--stage-primary)] text-white" : "bg-white/5 text-[var(--stage-fg)]/60"
           }`}
         >
-          سجل الكشوف
+          الساحة
         </button>
       </div>
 
