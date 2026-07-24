@@ -25,6 +25,22 @@ export function PlayersTable({ stage, initialPlayers }: { stage: Stage; initialP
     setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, ...changes } : p)));
   }
 
+  function remove(id: string) {
+    setPlayers((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  async function deleteRejected(id: string) {
+    if (!confirm("حذف هذا الطلب المرفوض نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.")) return;
+    const res = await fetch(`/api/admin/${stage.slug}/players/${id}/delete`, { method: "POST" });
+    const json = await res.json();
+    if (!res.ok) {
+      toast.error(json.error ?? "تعذر الحذف");
+      return;
+    }
+    remove(id);
+    toast.success("تم حذف الطلب");
+  }
+
   async function approve(id: string) {
     const res = await fetch(`/api/admin/${stage.slug}/players/${id}/approve`, { method: "POST" });
     const json = await res.json();
@@ -185,9 +201,16 @@ export function PlayersTable({ stage, initialPlayers }: { stage: Stage; initialP
                         إعادة تفعيل
                       </Button>
                     )}
-                    <Button variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => changePassword(p.id)}>
-                      تغيير كلمة المرور
-                    </Button>
+                    {p.status === "rejected" && (
+                      <Button variant="danger" className="!px-2 !py-1 text-xs" onClick={() => deleteRejected(p.id)}>
+                        حذف نهائيًا
+                      </Button>
+                    )}
+                    {p.status !== "rejected" && (
+                      <Button variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => changePassword(p.id)}>
+                        تغيير كلمة المرور
+                      </Button>
+                    )}
                   </div>
                 </td>
               </tr>
