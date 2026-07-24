@@ -24,11 +24,13 @@ export function RoundFlow({
   round,
   targets,
   realNames,
+  revealFrozen = false,
 }: {
   stage: Stage;
   round: Round;
   targets: PlayerCard[];
   realNames: string[];
+  revealFrozen?: boolean;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("answer");
@@ -40,7 +42,7 @@ export function RoundFlow({
 
   const options = useMemo(() => Object.entries(round.options ?? {}), [round.options]);
   const maxAttempts = round.reveal_attempts_allowed;
-  const canReveal = round.reveal_enabled && maxAttempts > 0;
+  const canReveal = round.reveal_enabled && maxAttempts > 0 && !revealFrozen;
   const availableTargets = targets.filter((t) => !picks.some((p) => p.target_id === t.id));
 
   function addPick() {
@@ -123,7 +125,7 @@ export function RoundFlow({
           </div>
           <div className="mt-4 flex justify-between text-xs text-[var(--stage-fg)]/50">
             <span>نقاط الإجابة الصحيحة: {round.points}</span>
-            <span>محاولات الكشف المتاحة: {maxAttempts}</span>
+            <span>محاولات الكشف المتاحة: {canReveal ? maxAttempts : 0}</span>
           </div>
           <Button
             className="mt-5 w-full"

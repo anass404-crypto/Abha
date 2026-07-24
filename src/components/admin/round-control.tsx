@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
-import type { Round, Stage, Submission, RevealAttempt } from "@/lib/supabase/database.types";
+import type { ActionCardUsage, Round, Stage, Submission, RevealAttempt } from "@/lib/supabase/database.types";
 
 type SubmissionRow = Submission & { student_display_name: string; student_real_name: string };
 type AttemptRow = RevealAttempt & {
@@ -16,6 +16,12 @@ type AttemptRow = RevealAttempt & {
   target_display_name: string;
   target_real_name: string;
   revealer_answer_correct: boolean | null;
+  blocking_card_name: string | null;
+};
+type CardUsageRow = ActionCardUsage & {
+  card_name: string;
+  student_display_name: string;
+  target_display_name: string | null;
 };
 
 const REVEAL_STATUS_LABEL: Record<string, string> = {
@@ -26,6 +32,16 @@ const REVEAL_STATUS_LABEL: Record<string, string> = {
   cancelled_target_exposed: "ملغاة — الهدف مكشوف مسبقًا",
   cancelled_revealer_exposed: "ملغاة — الكاشف انكشف قبل التنفيذ",
   cancelled_admin: "ملغاة إداريًا",
+  cancelled_card_effect: "ملغاة — بطاقة أكشن",
+};
+
+const CARD_USAGE_STATUS_LABEL: Record<string, string> = {
+  reserved: "محجوزة",
+  applied: "مُفعّلة",
+  failed: "فشلت",
+  cancelled: "ملغاة",
+  pending_admin_approval: "بانتظار الموافقة",
+  rejected: "مرفوضة",
 };
 
 function toEditForm(round: Round) {
@@ -51,11 +67,13 @@ export function RoundControl({
   round: initialRound,
   submissionRows,
   attemptRows,
+  cardUsageRows,
 }: {
   stage: Stage;
   round: Round;
   submissionRows: SubmissionRow[];
   attemptRows: AttemptRow[];
+  cardUsageRows: CardUsageRow[];
 }) {
   const router = useRouter();
   const [round, setRound] = useState(initialRound);
@@ -101,9 +119,14 @@ export function RoundControl({
       return;
     }
     let closesAt = round.closes_at;
+    // Both Date.now() calls run inside this onClick-triggered handler, never during render —
+    // react-hooks/purity's reachability heuristic misfires here once the component has more
+    // than one handler function in scope.
+    // eslint-disable-next-line react-hooks/purity
     if (new Date(closesAt).getTime() <= Date.now()) {
       const input = prompt(
         "وقت إغلاق الجولة الحالي قد مضى — أدخل وقت إغلاق جديد حتى يقدر الطلاب يجاوبون (YYYY-MM-DDTHH:mm):",
+        // eslint-disable-next-line react-hooks/purity
         new Date(Date.now() + 15 * 60_000).toISOString().slice(0, 16)
       );
       if (!input) return;
@@ -151,6 +174,20 @@ export function RoundControl({
       return;
     }
     toast.success("تم إرسال الإشعار");
+  }
+
+  async function cancelAttempt(attemptId: string) {
+    const reason = prompt("سبب الإلغاء:");
+    if (!reason) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("admin_cancel_reveal_attempt", { p_attempt_id: attemptId, p_reason: reason });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message || "تعذر إلغاء المحاولة");
+      return;
+    }
+    toast.success("تم إلغاء المحاولة");
+    router.refresh();
   }
 
   function exportCsv() {
@@ -383,7 +420,10 @@ export function RoundControl({
               <th className="p-2 text-right">إجابة الكاشف صحيحة؟</th>
               <th className="p-2 text-right">صحة التخمين</th>
               <th className="p-2 text-right">الحالة</th>
+              <th className="p-2 text-right">البطاقة المؤثرة</th>
+              <th className="p-2 text-right">سبب الإلغاء</th>
               <th className="p-2 text-right">وقت التسليم</th>
+              <th className="p-2 text-right"></th>
             </tr>
           </thead>
           <tbody>
@@ -395,13 +435,59 @@ export function RoundControl({
                 <td className="p-2">{a.target_real_name}</td>
                 <td className="p-2">{a.revealer_answer_correct === null ? "—" : a.revealer_answer_correct ? "نعم" : "لا"}</td>
                 <td className="p-2">{a.is_correct === null ? "—" : a.is_correct ? "صحيح" : "خطأ"}</td>
-                <td className="p-2 text-xs">{REVEAL_STATUS_LABEL[a.status]}</td>
+                <td className="p-2 text-xs">{REVEAL_STATUS_LABEL[a.status] ?? a.status}</td>
+                <td className="p-2 text-xs">{a.blocking_card_name ?? "—"}</td>
+                <td className="p-2 text-xs">{a.cancel_reason ?? "—"}</td>
                 <td className="p-2 text-xs">{new Date(a.submitted_at).toLocaleString("ar")}</td>
+                <td className="p-2">
+                  {a.status === "pending" && round.status !== "published" && (
+                    <Button
+                      variant="danger"
+                      className="!px-2 !py-1 text-xs"
+                      disabled={busy}
+                      onClick={() => cancelAttempt(a.id)}
+                    >
+                      إلغاء
+                    </Button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </Card>
+
+      {stage.enable_action_cards && (
+        <Card className="overflow-x-auto">
+          <h2 className="mb-3 text-sm font-bold text-[var(--stage-fg)]/70">بطاقات الجولة ({cardUsageRows.length})</h2>
+          {cardUsageRows.length === 0 ? (
+            <p className="text-sm text-[var(--stage-fg)]/50">لا توجد بطاقات مستخدمة لهذه الجولة</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--stage-border)] text-[var(--stage-fg)]/60">
+                  <th className="p-2 text-right">البطاقة</th>
+                  <th className="p-2 text-right">الطالب</th>
+                  <th className="p-2 text-right">الهدف</th>
+                  <th className="p-2 text-right">الحالة</th>
+                  <th className="p-2 text-right">وقت الاستخدام</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cardUsageRows.map((u) => (
+                  <tr key={u.id} className="border-b border-[var(--stage-border)]/50">
+                    <td className="p-2">{u.card_name}</td>
+                    <td className="p-2">{u.student_display_name}</td>
+                    <td className="p-2">{u.target_display_name ?? "—"}</td>
+                    <td className="p-2 text-xs">{CARD_USAGE_STATUS_LABEL[u.status] ?? u.status}</td>
+                    <td className="p-2 text-xs">{new Date(u.submitted_at).toLocaleString("ar")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

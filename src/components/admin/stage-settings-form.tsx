@@ -19,6 +19,8 @@ const TOGGLES: { key: keyof Stage; label: string }[] = [
   { key: "enable_streak", label: "تفعيل سلسلة الإجابات" },
   { key: "enable_sound_fx", label: "تفعيل المؤثرات الصوتية" },
   { key: "allow_answer_edit", label: "السماح بتعديل الإجابة قبل الإغلاق" },
+  { key: "show_reveal_log", label: "إظهار سجل الكشوف للطلاب" },
+  { key: "enable_action_cards", label: "تفعيل نظام بطاقات الأكشن للطلاب" },
 ];
 
 export function StageSettingsForm({ stage: initialStage }: { stage: Stage }) {

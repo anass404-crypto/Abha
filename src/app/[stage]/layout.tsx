@@ -21,7 +21,11 @@ export default async function StageLayout({
       <StageProvider stage={stage}>
         <BrandStrip stageName={stage.name} />
         {children}
-        <StageBottomNav slug={stage.slug} showLeaderboard={stage.show_leaderboard} />
+        <StageBottomNav
+          slug={stage.slug}
+          showLeaderboard={stage.show_leaderboard}
+          enableActionCards={stage.enable_action_cards}
+        />
       </StageProvider>
     </div>
   );
