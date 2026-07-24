@@ -113,7 +113,7 @@ export function DisplayScreen({
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <PlayerGrid cards={cards} showBalances={stage.show_balances} />
+        <PlayerGrid cards={cards} showBalances={stage.show_balances} compact />
 
         <div className="glass-card h-fit p-4">
           <h2 className="mb-3 text-sm font-bold text-[var(--stage-fg)]/70">آخر الأحداث</h2>

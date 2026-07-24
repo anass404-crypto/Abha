@@ -38,15 +38,24 @@ export function PlayerGrid({
   cards,
   currentUserId,
   showBalances = true,
+  compact = false,
 }: {
   cards: PlayerCard[];
   currentUserId?: string;
   showBalances?: boolean;
+  compact?: boolean;
 }) {
   const topBalance = Math.max(0, ...cards.filter((c) => c.status === "active").map((c) => c.balance));
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+    <div
+      className={cn(
+        "grid",
+        compact
+          ? "grid-cols-4 gap-1.5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10"
+          : "grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+      )}
+    >
       {cards.map((card, i) => (
         <PlayerFlipCard
           key={card.id}
@@ -54,6 +63,7 @@ export function PlayerGrid({
           isSelf={card.id === currentUserId}
           isLeader={card.status === "active" && topBalance > 0 && card.balance === topBalance}
           showBalance={showBalances}
+          compact={compact}
           index={i}
         />
       ))}
@@ -66,12 +76,14 @@ function PlayerFlipCard({
   isSelf,
   isLeader,
   showBalance,
+  compact,
   index,
 }: {
   card: PlayerCard;
   isSelf: boolean;
   isLeader: boolean;
   showBalance: boolean;
+  compact: boolean;
   index: number;
 }) {
   const exposed = card.status === "exposed";
@@ -83,14 +95,15 @@ function PlayerFlipCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.35, delay: Math.min(index * 0.02, 0.4) }}
       className={cn(
-        "relative flex aspect-[3/4] flex-col items-center justify-center gap-1.5 overflow-hidden rounded-2xl border p-3 text-center",
+        "relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border text-center",
+        compact ? "gap-0.5 p-1.5" : "aspect-[3/4] gap-1.5 p-3",
         exposed
           ? "border-zinc-600/50 bg-zinc-800/60 grayscale"
           : "border-emerald-400/40 bg-gradient-to-br from-emerald-500/15 via-transparent to-emerald-400/5",
         isSelf && !exposed && "ring-2 ring-[var(--stage-primary)] shadow-[0_0_28px_-6px_var(--stage-primary)]"
       )}
     >
-      {!exposed && (
+      {!exposed && !compact && (
         <motion.div
           className="pointer-events-none absolute inset-0 rounded-2xl"
           animate={{ boxShadow: ["0 0 0px rgba(16,185,129,0)", "0 0 22px rgba(16,185,129,0.35)", "0 0 0px rgba(16,185,129,0)"] }}
@@ -99,27 +112,33 @@ function PlayerFlipCard({
       )}
 
       {isLeader && (
-        <span className="absolute right-2 top-2 text-lg drop-shadow-[0_0_6px_rgba(250,204,21,0.9)]">👑</span>
+        <span className={cn("absolute right-1 top-1 drop-shadow-[0_0_6px_rgba(250,204,21,0.9)]", compact ? "text-xs" : "text-lg")}>
+          👑
+        </span>
       )}
-      {exposed && (
+      {exposed && !compact && (
         <span className="absolute right-2 top-2 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
           مكشوف
         </span>
       )}
 
-      <span className={cn("text-3xl", exposed && "opacity-70")}>{card.emoji}</span>
+      <span className={cn(compact ? "text-lg" : "text-3xl", exposed && "opacity-70")}>{card.emoji}</span>
 
       {exposed ? (
         <>
-          <span className="text-center text-sm font-black text-zinc-300">{card.real_name}</span>
-          <span className="text-[11px] text-zinc-500">{card.display_name}</span>
+          <span className={cn("truncate text-center font-black text-zinc-300", compact ? "max-w-full text-[10px]" : "text-sm")}>
+            {card.real_name}
+          </span>
+          {!compact && <span className="text-[11px] text-zinc-500">{card.display_name}</span>}
         </>
       ) : (
-        <span className="text-center text-sm font-bold text-emerald-50">{card.display_name}</span>
+        <span className={cn("truncate text-center font-bold text-emerald-50", compact ? "max-w-full text-[10px]" : "text-sm")}>
+          {card.display_name}
+        </span>
       )}
 
       {showBalance && (
-        <span className={cn("text-xs font-mono", exposed ? "text-zinc-500" : "text-emerald-300")} dir="ltr">
+        <span className={cn("font-mono", compact ? "text-[9px]" : "text-xs", exposed ? "text-zinc-500" : "text-emerald-300")} dir="ltr">
           {card.balance}
         </span>
       )}
