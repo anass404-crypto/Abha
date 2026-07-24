@@ -11,10 +11,9 @@ export default async function PendingPage({ params }: { params: Promise<{ stage:
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-16 text-center">
       <Card>
         <div className="mb-3 text-4xl">⏳</div>
-        <h1 className="text-xl font-black">طلبك بانتظار الاعتماد</h1>
+        <h1 className="text-xl font-black">طلبك قيد المراجعة</h1>
         <p className="mt-2 text-sm text-[var(--stage-fg)]/70">
-          راجع المشرف طلب تسجيلك في {stage.name}. بعد الاعتماد ستحصل على اسم مستخدم خاص، ويمكنك حينها تسجيل
-          الدخول برقم جوالك أو اسم المستخدم مع كلمة المرور.
+          بعد الاعتماد يمكنك تسجيل الدخول برقم جوالك مع كلمة المرور.
         </p>
         <a
           href={`/${stage.slug}/login`}

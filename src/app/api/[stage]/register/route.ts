@@ -35,6 +35,26 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const admin = createAdminClient();
+
+  const { data: existing } = await admin
+    .from("profiles")
+    .select("id, status")
+    .eq("stage_id", stage.id)
+    .eq("role", "student")
+    .eq("phone", input.phone)
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.status === "rejected") {
+      // A rejected applicant is allowed to apply again — clear out the old
+      // rejected account (auth user delete cascades the profile row) so the
+      // phone/display-name uniqueness checks below don't block the retry.
+      await admin.auth.admin.deleteUser(existing.id);
+    } else {
+      return NextResponse.json({ error: "رقم الجوال مسجل مسبقًا في هذه المرحلة" }, { status: 409 });
+    }
+  }
+
   const syntheticEmail = `${randomUUID()}@stage-${stage.slug}.invalid`;
 
   const { data: created, error: createUserError } = await admin.auth.admin.createUser({
