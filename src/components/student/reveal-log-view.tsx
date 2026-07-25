@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import type { RevealLogEntry } from "@/lib/supabase/database.types";
 
@@ -84,12 +85,14 @@ export function RevealLogView({ entries }: { entries: RevealLogEntry[] }) {
               {list.map((e, i) => (
                 <Card key={`${e.round_id}-${e.revealer_id}-${e.target_id}-${i}`} className="flex items-center justify-between p-3">
                   <div className="text-sm">
-                    <span className="font-bold">
-                      {e.revealer_emoji} {e.revealer_display_name}
-                    </span>
-                    <span className="mx-1.5 text-[var(--stage-fg)]/40">←</span>
-                    <span className="font-bold">
-                      {e.target_emoji} {e.target_display_name}
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="font-bold">
+                        {e.revealer_emoji} {e.revealer_display_name}
+                      </span>
+                      <ArrowLeft size={14} className="shrink-0 text-[var(--stage-fg)]/40" />
+                      <span className="font-bold">
+                        {e.target_emoji} {e.target_display_name}
+                      </span>
                     </span>
                     {e.outcome === "exposed" && e.target_real_name && (
                       <div className="mt-0.5 text-xs text-emerald-400">الاسم الحقيقي: {e.target_real_name}</div>
