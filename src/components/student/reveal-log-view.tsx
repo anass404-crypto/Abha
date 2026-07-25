@@ -87,7 +87,7 @@ export function RevealLogView({ entries }: { entries: RevealLogEntry[] }) {
                     <span className="font-bold">
                       {e.revealer_emoji} {e.revealer_display_name}
                     </span>
-                    <span className="mx-1.5 text-[var(--stage-fg)]/40">→</span>
+                    <span className="mx-1.5 text-[var(--stage-fg)]/40">←</span>
                     <span className="font-bold">
                       {e.target_emoji} {e.target_display_name}
                     </span>

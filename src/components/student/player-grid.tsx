@@ -147,7 +147,13 @@ function PlayerFlipCard({
           >
             {card.real_name}
           </span>
-          <span className={cn("truncate text-center", light ? "text-zinc-500" : "text-zinc-500", compact ? "text-[10px]" : "text-[11px]")}>
+          <span
+            className={cn(
+              "truncate text-center font-bold",
+              light ? "text-zinc-600" : "text-zinc-400",
+              compact ? "text-[11px]" : "text-xs"
+            )}
+          >
             {card.display_name}
           </span>
         </>
