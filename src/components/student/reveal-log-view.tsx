@@ -78,38 +78,62 @@ export function RevealLogView({ entries }: { entries: RevealLogEntry[] }) {
       {grouped.length === 0 && <p className="text-sm text-[var(--stage-fg)]/50">لا توجد محاولات كشف بعد</p>}
 
       <div className="space-y-5">
-        {grouped.map(([roundNumber, list]) => (
-          <div key={roundNumber}>
-            <h3 className="mb-2 text-sm font-bold text-[var(--stage-fg)]/70">الجولة {roundNumber}</h3>
-            <div className="space-y-2">
-              {list.map((e, i) => (
-                <Card key={`${e.round_id}-${e.revealer_id}-${e.target_id}-${i}`} className="flex items-center justify-between p-3">
-                  <div className="text-sm">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="font-bold">
-                        {e.revealer_emoji} {e.revealer_display_name}
+        {grouped.map(([roundNumber, list]) => {
+          const roundExposed = list.filter((e) => e.outcome === "exposed").length;
+          const roundIncomplete = list.length - roundExposed;
+          const targetAttemptCounts = new Map<string, number>();
+          for (const e of list) targetAttemptCounts.set(e.target_id, (targetAttemptCounts.get(e.target_id) ?? 0) + 1);
+
+          return (
+            <div key={roundNumber}>
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[var(--stage-fg)]/70">الجولة {roundNumber}</h3>
+                <div className="flex gap-1.5 text-[11px] font-bold">
+                  <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-emerald-400">{roundExposed} كشف</span>
+                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-[var(--stage-fg)]/60">{roundIncomplete} لم يكتمل</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {list.map((e, i) => {
+                  const targetAttempts = targetAttemptCounts.get(e.target_id) ?? 1;
+                  return (
+                    <Card
+                      key={`${e.round_id}-${e.revealer_id}-${e.target_id}-${i}`}
+                      className="flex items-center justify-between p-3"
+                    >
+                      <div className="text-sm">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="font-bold">
+                            {e.revealer_emoji} {e.revealer_display_name}
+                          </span>
+                          <ArrowLeft size={14} className="shrink-0 text-[var(--stage-fg)]/40" />
+                          <span className="font-bold">
+                            {e.target_emoji} {e.target_display_name}
+                          </span>
+                          {targetAttempts > 1 && (
+                            <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-400">
+                              ×{targetAttempts} محاولات على هذا الهدف
+                            </span>
+                          )}
+                        </span>
+                        {e.outcome === "exposed" && e.target_real_name && (
+                          <div className="mt-0.5 text-xs text-emerald-400">الاسم الحقيقي: {e.target_real_name}</div>
+                        )}
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
+                          e.outcome === "exposed" ? "bg-emerald-500/15 text-emerald-400" : "bg-white/5 text-[var(--stage-fg)]/60"
+                        }`}
+                      >
+                        {OUTCOME_LABEL[e.outcome]}
                       </span>
-                      <ArrowLeft size={14} className="shrink-0 text-[var(--stage-fg)]/40" />
-                      <span className="font-bold">
-                        {e.target_emoji} {e.target_display_name}
-                      </span>
-                    </span>
-                    {e.outcome === "exposed" && e.target_real_name && (
-                      <div className="mt-0.5 text-xs text-emerald-400">الاسم الحقيقي: {e.target_real_name}</div>
-                    )}
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
-                      e.outcome === "exposed" ? "bg-emerald-500/15 text-emerald-400" : "bg-white/5 text-[var(--stage-fg)]/60"
-                    }`}
-                  >
-                    {OUTCOME_LABEL[e.outcome]}
-                  </span>
-                </Card>
-              ))}
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
