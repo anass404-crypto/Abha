@@ -25,12 +25,14 @@ export function RoundFlow({
   targets,
   realNames,
   revealFrozen = false,
+  bonusRevealAttempts = 0,
 }: {
   stage: Stage;
   round: Round;
   targets: PlayerCard[];
   realNames: string[];
   revealFrozen?: boolean;
+  bonusRevealAttempts?: number;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("answer");
@@ -41,7 +43,7 @@ export function RoundFlow({
   const [submitting, setSubmitting] = useState(false);
 
   const options = useMemo(() => Object.entries(round.options ?? {}), [round.options]);
-  const maxAttempts = round.reveal_attempts_allowed;
+  const maxAttempts = round.reveal_attempts_allowed + bonusRevealAttempts;
   const canReveal = round.reveal_enabled && maxAttempts > 0 && !revealFrozen;
   const availableTargets = targets.filter((t) => !picks.some((p) => p.target_id === t.id));
 
@@ -125,7 +127,10 @@ export function RoundFlow({
           </div>
           <div className="mt-4 flex justify-between text-xs text-[var(--stage-fg)]/50">
             <span>نقاط الإجابة الصحيحة: {round.points}</span>
-            <span>محاولات الكشف المتاحة: {canReveal ? maxAttempts : 0}</span>
+            <span>
+              محاولات الكشف المتاحة: {canReveal ? maxAttempts : 0}
+              {canReveal && bonusRevealAttempts > 0 && " (شاملة بطاقة الرؤية المزدوجة)"}
+            </span>
           </div>
           <Button
             className="mt-5 w-full"

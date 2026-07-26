@@ -260,6 +260,7 @@ export type RevealLogEntry = {
 export type RoundParticipationStatus = {
   excluded: boolean;
   reveal_frozen: boolean;
+  double_vision_active: boolean;
 };
 
 export type CardRarity = "common" | "rare" | "epic" | "legendary";

@@ -60,6 +60,7 @@ export default async function RoundPage({ params }: { params: Promise<{ stage: s
       targets={targets}
       realNames={(realNames ?? []).filter((n) => n !== profile.real_name)}
       revealFrozen={Boolean(participation?.[0]?.reveal_frozen)}
+      bonusRevealAttempts={participation?.[0]?.double_vision_active ? 1 : 0}
     />
   );
 }
