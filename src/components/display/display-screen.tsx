@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Maximize, Minimize } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LogOut, Maximize, Minimize } from "lucide-react";
 import { Countdown } from "@/components/ui/countdown";
 import { PlayerGrid, usePlayerCards } from "@/components/student/player-grid";
 import { createClient } from "@/lib/supabase/client";
@@ -17,16 +18,25 @@ export function DisplayScreen({
   initialCards,
   currentRound,
   initialEvents,
+  exposedViewer = false,
 }: {
   stage: Stage;
   initialCards: import("@/lib/supabase/database.types").PlayerCard[];
   currentRound: Round | null;
   initialEvents: EventLogRow[];
+  exposedViewer?: boolean;
 }) {
+  const router = useRouter();
   const cards = usePlayerCards(stage.id, initialCards);
   const [events, setEvents] = useState(initialEvents);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  async function logout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push(`/${stage.slug}/login`);
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -83,10 +93,21 @@ export function DisplayScreen({
             <p className="text-[11px] text-[var(--stage-fg)]/50">{stage.name}</p>
           </div>
         </div>
-        <button onClick={toggleFullscreen} className="rounded-lg border border-[var(--stage-border)] p-1.5">
-          {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={toggleFullscreen} className="rounded-lg border border-[var(--stage-border)] p-1.5">
+            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+          </button>
+          <button onClick={logout} className="rounded-lg border border-[var(--stage-border)] p-1.5" title="تسجيل الخروج">
+            <LogOut size={18} />
+          </button>
+        </div>
       </div>
+
+      {exposedViewer && (
+        <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm">
+          تم كشف هويتك، لكن تقدر تتابع مجريات المنافسة من هنا.
+        </div>
+      )}
 
       <div className="mb-3 grid grid-cols-4 gap-2">
         <div className="glass-card p-2 text-center">

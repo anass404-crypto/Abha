@@ -22,6 +22,7 @@ export default async function StageHomePage({ params }: { params: Promise<{ stag
   }
   if (profile.stage_id !== stage.id) redirect(`/${slug}/login`);
   if (profile.status === "pending" || profile.status === "rejected") redirect(`/${slug}/pending`);
+  if (profile.status === "exposed") redirect(`/${slug}/display`);
 
   const [{ data: currentRound }, { count: activeCount }, { data: notifications }] = await Promise.all([
     supabase

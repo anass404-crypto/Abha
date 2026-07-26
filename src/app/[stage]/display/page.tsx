@@ -3,7 +3,7 @@ import { DisplayScreen } from "@/components/display/display-screen";
 
 export default async function DisplayPage({ params }: { params: Promise<{ stage: string }> }) {
   const { stage: slug } = await params;
-  const { supabase, stage } = await requireStageMember(slug);
+  const { supabase, stage, profile } = await requireStageMember(slug);
 
   const [{ data: cards }, { data: currentRound }, { data: events }] = await Promise.all([
     supabase.rpc("get_stage_player_cards", { p_stage_id: stage.id }),
@@ -30,6 +30,7 @@ export default async function DisplayPage({ params }: { params: Promise<{ stage:
       initialCards={cards ?? []}
       currentRound={currentRound ?? null}
       initialEvents={events ?? []}
+      exposedViewer={profile.role === "student" && profile.status === "exposed"}
     />
   );
 }

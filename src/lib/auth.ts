@@ -25,6 +25,9 @@ export async function requireStudent(stageSlug: string): Promise<{
   if (profile.status === "pending" || profile.status === "rejected") {
     redirect(`/${stageSlug}/pending`);
   }
+  if (profile.status === "exposed") {
+    redirect(`/${stageSlug}/display`);
+  }
 
   return { supabase, stage, profile: profile as Profile };
 }
