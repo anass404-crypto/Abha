@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { RevealLogView } from "@/components/student/reveal-log-view";
-import type { BalanceLedgerEntry, RevealLogEntry } from "@/lib/supabase/database.types";
+import { MessagesView } from "@/components/student/messages-view";
+import type { BalanceLedgerEntry, InboxMessage, RevealLogEntry, SentMessage } from "@/lib/supabase/database.types";
 
 const TYPE_LABEL: Record<string, string> = {
   correct_answer: "إجابة صحيحة",
@@ -40,41 +41,54 @@ function LedgerList({ entries }: { entries: BalanceLedgerEntry[] }) {
   );
 }
 
+type TabKey = "ledger" | "reveal" | "messages";
+
 export function HistoryTabs({
+  stageId,
   ledgerEntries,
   revealLogEntries,
   showRevealLog,
+  inboxMessages,
+  sentMessages,
+  enableMessaging,
 }: {
+  stageId: string;
   ledgerEntries: BalanceLedgerEntry[];
   revealLogEntries: RevealLogEntry[];
   showRevealLog: boolean;
+  inboxMessages: InboxMessage[];
+  sentMessages: SentMessage[];
+  enableMessaging: boolean;
 }) {
-  const [tab, setTab] = useState<"ledger" | "reveal">("ledger");
+  const [tab, setTab] = useState<TabKey>("ledger");
 
-  if (!showRevealLog) return <LedgerList entries={ledgerEntries} />;
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: "ledger", label: "سجل الرصيد" },
+    ...(showRevealLog ? [{ key: "reveal" as TabKey, label: "الساحة" }] : []),
+    ...(enableMessaging ? [{ key: "messages" as TabKey, label: "الرسائل" }] : []),
+  ];
+
+  if (tabs.length === 1) return <LedgerList entries={ledgerEntries} />;
 
   return (
     <div>
-      <div className="mb-5 flex gap-2">
-        <button
-          onClick={() => setTab("ledger")}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-            tab === "ledger" ? "bg-[var(--stage-primary)] text-white" : "bg-white/5 text-[var(--stage-fg)]/60"
-          }`}
-        >
-          سجل الرصيد
-        </button>
-        <button
-          onClick={() => setTab("reveal")}
-          className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-            tab === "reveal" ? "bg-[var(--stage-primary)] text-white" : "bg-white/5 text-[var(--stage-fg)]/60"
-          }`}
-        >
-          الساحة
-        </button>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+              tab === t.key ? "bg-[var(--stage-primary)] text-white" : "bg-white/5 text-[var(--stage-fg)]/60"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {tab === "ledger" ? <LedgerList entries={ledgerEntries} /> : <RevealLogView entries={revealLogEntries} />}
+      {tab === "ledger" && <LedgerList entries={ledgerEntries} />}
+      {tab === "reveal" && <RevealLogView entries={revealLogEntries} />}
+      {tab === "messages" && <MessagesView stageId={stageId} inbox={inboxMessages} sent={sentMessages} />}
     </div>
   );
 }

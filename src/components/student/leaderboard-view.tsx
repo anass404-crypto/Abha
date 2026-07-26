@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PlayerGrid, usePlayerCards } from "@/components/student/player-grid";
+import { MessageComposeModal } from "@/components/student/message-compose-modal";
 import type { PlayerCard, Profile, Stage } from "@/lib/supabase/database.types";
 
 export function LeaderboardView({
@@ -17,6 +19,7 @@ export function LeaderboardView({
   const router = useRouter();
   const cards = usePlayerCards(stage.id, initialCards);
   const topFive = [...cards].sort((a, b) => b.balance - a.balance).slice(0, 5);
+  const [messageTarget, setMessageTarget] = useState<PlayerCard | null>(null);
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
@@ -41,7 +44,16 @@ export function LeaderboardView({
         </div>
       )}
 
-      <PlayerGrid cards={cards} currentUserId={profile.id} showBalances={stage.show_balances} />
+      <PlayerGrid
+        cards={cards}
+        currentUserId={profile.id}
+        showBalances={stage.show_balances}
+        onMessage={stage.enable_messaging ? setMessageTarget : undefined}
+      />
+
+      {messageTarget && (
+        <MessageComposeModal stageId={stage.id} target={messageTarget} onClose={() => setMessageTarget(null)} />
+      )}
     </main>
   );
 }

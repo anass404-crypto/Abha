@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/rounds", label: "الجولات" },
   { href: "/cards", label: "البطاقات" },
   { href: "/reveal-log", label: "الساحة" },
+  { href: "/messages", label: "الرسائل" },
   { href: "/settings", label: "الإعدادات" },
 ];
 

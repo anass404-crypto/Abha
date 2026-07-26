@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { PlayerCard } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
@@ -40,12 +41,14 @@ export function PlayerGrid({
   showBalances = true,
   compact = false,
   light = false,
+  onMessage,
 }: {
   cards: PlayerCard[];
   currentUserId?: string;
   showBalances?: boolean;
   compact?: boolean;
   light?: boolean;
+  onMessage?: (card: PlayerCard) => void;
 }) {
   const topBalance = Math.max(0, ...cards.filter((c) => c.status === "active").map((c) => c.balance));
 
@@ -65,6 +68,9 @@ export function PlayerGrid({
           showBalance={showBalances}
           compact={compact}
           light={light}
+          onMessage={
+            onMessage && card.id !== currentUserId && card.status === "active" ? () => onMessage(card) : undefined
+          }
           index={i}
         />
       ))}
@@ -79,6 +85,7 @@ function PlayerFlipCard({
   showBalance,
   compact,
   light,
+  onMessage,
   index,
 }: {
   card: PlayerCard;
@@ -87,6 +94,7 @@ function PlayerFlipCard({
   showBalance: boolean;
   compact: boolean;
   light: boolean;
+  onMessage?: () => void;
   index: number;
 }) {
   const exposed = card.status === "exposed";
@@ -180,6 +188,22 @@ function PlayerFlipCard({
         >
           {card.balance}
         </span>
+      )}
+
+      {onMessage && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMessage();
+          }}
+          className={cn(
+            "mt-0.5 flex items-center justify-center rounded-full p-1 transition-colors",
+            light ? "bg-black/5 text-zinc-600 hover:bg-black/10" : "bg-white/10 text-[var(--stage-fg)]/70 hover:bg-white/20"
+          )}
+          title="إرسال رسالة"
+        >
+          <MessageCircle size={13} />
+        </button>
       )}
     </motion.div>
   );

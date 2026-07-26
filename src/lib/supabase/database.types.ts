@@ -116,6 +116,7 @@ export type Stage = {
   results_publish_mode: PublishMode;
   show_reveal_log: boolean;
   enable_action_cards: boolean;
+  enable_messaging: boolean;
   created_at: string;
 };
 
@@ -482,6 +483,41 @@ export type ActionCardRuleGrant = {
   triggered_at: string;
 };
 
+export type MessageRow = {
+  id: string;
+  stage_id: string;
+  sender_id: string;
+  recipient_id: string;
+  body: string;
+  is_anonymous: boolean;
+  reply_to_id: string | null;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type InboxMessage = {
+  id: string;
+  sender_id: string | null;
+  sender_display_name: string | null;
+  sender_emoji: string | null;
+  is_anonymous: boolean;
+  body: string;
+  reply_to_id: string | null;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type SentMessage = {
+  id: string;
+  recipient_id: string;
+  recipient_display_name: string;
+  recipient_emoji: string | null;
+  is_anonymous: boolean;
+  body: string;
+  reply_to_id: string | null;
+  created_at: string;
+};
+
 type TableDef<Row> = {
   Row: Row;
   Insert: Partial<Row>;
@@ -521,6 +557,7 @@ export interface Database {
       action_card_rules: TableDef<ActionCardRule>;
       action_card_rule_rewards: TableDef<ActionCardRuleReward>;
       action_card_rule_grants: TableDef<ActionCardRuleGrant>;
+      messages: TableDef<MessageRow>;
     };
     Views: Record<string, never>;
     Functions: {
@@ -574,6 +611,18 @@ export interface Database {
       evaluate_action_card_rules: { Args: { p_round_id: string }; Returns: void };
       evaluate_end_of_competition_rules: { Args: { p_stage_id: string }; Returns: void };
       approve_rule_grant: { Args: { p_grant_id: string }; Returns: void };
+      send_message: {
+        Args: {
+          p_stage_id: string;
+          p_recipient_id: string | null;
+          p_body: string;
+          p_anonymous?: boolean;
+          p_reply_to_id?: string | null;
+        };
+        Returns: string;
+      };
+      get_my_inbox: { Args: { p_stage_id: string }; Returns: InboxMessage[] };
+      get_my_sent_messages: { Args: { p_stage_id: string }; Returns: SentMessage[] };
     };
     Enums: {
       user_role: UserRole;

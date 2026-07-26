@@ -21,6 +21,7 @@ const TOGGLES: { key: keyof Stage; label: string }[] = [
   { key: "allow_answer_edit", label: "السماح بتعديل الإجابة قبل الإغلاق" },
   { key: "show_reveal_log", label: "إظهار الساحة للطلاب" },
   { key: "enable_action_cards", label: "تفعيل نظام بطاقات الأكشن للطلاب" },
+  { key: "enable_messaging", label: "تفعيل الرسائل بين المتنافسين" },
 ];
 
 export function StageSettingsForm({ stage: initialStage }: { stage: Stage }) {
