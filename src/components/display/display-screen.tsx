@@ -144,8 +144,8 @@ export function DisplayScreen({
         </div>
       )}
 
-      <div className="grid gap-4 2xl:grid-cols-[1fr_280px]">
-        <PlayerGrid cards={cards} showBalances={stage.show_balances} compact light />
+      <div className={exposedViewer ? "grid gap-4" : "grid gap-4 2xl:grid-cols-[1fr_280px]"}>
+        {!exposedViewer && <PlayerGrid cards={cards} showBalances={stage.show_balances} compact light />}
 
         <div className="glass-card h-fit p-4">
           <h2 className="mb-3 text-sm font-bold text-[var(--stage-fg)]/70">آخر الأحداث</h2>
